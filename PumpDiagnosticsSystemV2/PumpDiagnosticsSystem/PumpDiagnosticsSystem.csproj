@@ -172,7 +172,6 @@
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
-    <None Include="ReadMe.md" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\muParser.dll">
