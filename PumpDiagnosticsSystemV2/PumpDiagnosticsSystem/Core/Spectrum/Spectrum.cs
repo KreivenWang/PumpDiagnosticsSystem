@@ -42,7 +42,7 @@ namespace PumpDiagnosticsSystem.Core
             /// <summary>
             /// 判断为噪声点的报警值百分比(Y方向)
             /// </summary>
-            public static double NoiseAlarmPercent { get; } = 0.02;
+            public static double NoiseAlarmPercent { get; } = 0.01;
 
             /// <summary>
             /// 判断为噪声的最小宽度百分比(X方向)
