@@ -92,26 +92,11 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
         /// <summary>
         /// 根据转速,计算出振动数据采集频率上限
         /// </summary>
-        /// <param name="speed">转速</param>
+        /// <param name="rpm">转速</param>
         /// <returns></returns>
-        private double FMax(double speed)
+        private double FMax(double rpm)
         {
-            double ratio;
-            if (speed > 1700) {
-                ratio = 60D;
-            } else if (speed >= 1400 && speed <= 1700) {
-                ratio = 60D;
-            } else if (speed >= 1100 && speed < 1400) {
-                ratio = 80D;
-            } else if (speed >= 800 && speed < 1100) {
-                ratio = 100D;
-            } else if (speed >= 600 && speed < 800) {
-                ratio = 120D;
-            } else {
-                ratio = 120D;
-            }
-            var result = speed * ratio;
-
+            var result = Spectrum.FMax(rpm);
             LogToRtData(nameof(FMax), result);
             return result;
         }

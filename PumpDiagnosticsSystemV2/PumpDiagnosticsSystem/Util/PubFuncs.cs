@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Serialization.Formatters.Binary;
 using PumpDiagnosticsSystem.Models;
@@ -55,6 +56,30 @@ namespace PumpDiagnosticsSystem.Util
             return $"{{{ssGuid.ToUpper()}}}_{redisGraphType}";
         }
 
-        
+        /// <summary>
+        /// 找到数组中连续不断的值的始末对组成的数组
+        /// </summary>
+        /// <param name="data"></param>
+        /// <returns></returns>
+        public static List<Tuple<int, int>> FindContinues(List<int> data)
+        {
+            var result = new List<Tuple<int, int>>();
+            for (int i = 0; i < data.Count; i++) {
+                var start = data[i];
+                var forward = start + 1;
+                var j = i + 1;
+                for (; j < data.Count; j++) {
+                    if (data[j] != forward) {
+                        break;
+                    }
+                    forward++;
+                }
+                if (j != i + 1) {
+                    if (!result.Exists(t => t.Item2 == data[j - 1]))
+                        result.Add(new Tuple<int, int>(start, data[j - 1]));
+                }
+            }
+            return result;
+        }
     }
 }
