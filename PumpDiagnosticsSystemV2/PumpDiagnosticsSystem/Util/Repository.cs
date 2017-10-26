@@ -63,7 +63,7 @@ namespace PumpDiagnosticsSystem.Util
         /// <summary>
         /// 频谱特征值的报警值
         /// </summary>
-        public static Dictionary<string, string> SpecFtLimits { get; } = new Dictionary<string, string>();
+        public static Dictionary<string, double> SpecFtLimits { get; } = new Dictionary<string, double>();
 
         public static void Initialize()
         {
@@ -103,8 +103,18 @@ namespace PumpDiagnosticsSystem.Util
 
             foreach (DataRow row in PumpSysLib.TableSpectrumFeature.Rows) {
                 var ftNameStr = row["FtName"].ToString();
-                var lmtValueStr = row["FtLimit"].ToString();
-                SpecFtLimits.Add(ftNameStr, lmtValueStr);
+                var lmtExp = row["FtLimit"].ToString();
+               
+                //替换报警值表达式中的常量
+                foreach (var @const in Repo.Consts) {
+                    if (lmtExp.Contains(@const.Key))
+                        lmtExp = lmtExp.Replace(@const.Key, @const.Value.ToString());
+                }
+
+                //计算表达式得出报警值, 计算结果保留6位小数
+                var lmt = Math.Round(EasyParser.Parse(lmtExp), 6);
+
+                SpecFtLimits.Add(ftNameStr, lmt);
             }
 
             #endregion

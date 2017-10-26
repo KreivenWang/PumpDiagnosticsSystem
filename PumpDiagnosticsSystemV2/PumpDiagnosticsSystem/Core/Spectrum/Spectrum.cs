@@ -49,6 +49,11 @@ namespace PumpDiagnosticsSystem.Core
             /// 判断为噪声的最小宽度百分比(X方向)
             /// </summary>
             public static double NoiseMinWidthPercent { get; } = 1D/3D;
+
+            /// <summary>
+            /// 判断为特征点频率的容差
+            /// </summary>
+            public static double FtJudgeTolerance { get; } = 0.1D;
         }
 
         public class Dot
@@ -199,19 +204,6 @@ namespace PumpDiagnosticsSystem.Core
         }
 
         /// <summary>
-        /// 主振频率
-        /// </summary>
-        public struct MainVibraFrequency
-        {
-            /// <summary>
-            /// 这个值的赋值没测过,写法可能有问题
-            /// </summary>
-            public FtName? Feature { get; set; }
-
-            public double Value { get; set; }
-        }
-
-        /// <summary>
         /// 底脚噪音区
         /// </summary>
         public class FooterNoiseRegion
@@ -358,20 +350,26 @@ namespace PumpDiagnosticsSystem.Core
         {
             FtDict.Clear();
 
+            //RPS
+            FtDict.Add(FtName.RPS, 1);
+
+            //BEARING
             var brInfoDict = (Pos.CompPos == Position.Component.Pump
                 ? DataDetailsOp.GetPumpBearingInfos(PPGuid)
                 : DataDetailsOp.GetMotorBearingInfos(PPGuid))
                 .Where(b => b.Key.Contains(Pos.DriverPos == Position.Driver.In ? "_In" : "_Out"))
                 .ToDictionary(b => b.Key.Split('_')[0].Replace("@", string.Empty), b => b.Value);
-
-            var fanCount = DataDetailsOp.GetPumpFanCount(PPGuid);
-
-            FtDict.Add(FtName.RPS, 1);
+            
             FtDict.Add(FtName.BPFI, brInfoDict[FtName.BPFI.ToString()]);
             FtDict.Add(FtName.BPFO, brInfoDict[FtName.BPFO.ToString()]);
             FtDict.Add(FtName.BSF, brInfoDict[FtName.BSF.ToString()]);
             FtDict.Add(FtName.FTF, brInfoDict[FtName.FTF.ToString()]);
-            FtDict.Add(FtName.BPF, fanCount);
+
+            //PUMP - BPF
+            if (Pos.CompPos == Position.Component.Pump) {
+                var fanCount = DataDetailsOp.GetPumpFanCount(PPGuid);
+                FtDict.Add(FtName.BPF, fanCount);
+            }
         }
 
         private void SetDotFeatures()
@@ -384,15 +382,28 @@ namespace PumpDiagnosticsSystem.Core
                         continue;
 
                     //获取报警值
-                    var limitExp = Repo.SpecFtLimits[$"{Pos.CompPos}_{ft.Key}_{intRatio}"];
-                    var limit = EasyParser.Parse(limitExp);
+                    //先按照有倍数的找
+                    var ftLmtKey = $"{Pos.CompPos}_{ft.Key}_{intRatio}";
+                    var lmt = 999999D;
+                    if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
+                        lmt = Repo.SpecFtLimits[ftLmtKey];
+                    } else {
+                        //没找到有倍数的,就按默认1倍的找
+                        ftLmtKey = $"{Pos.CompPos}_{ft.Key}_1";
+                        if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
+                            lmt = Repo.SpecFtLimits[ftLmtKey];
+                        } else {
+                            //再找不到, 添加日志
+                            Log.Error($"找不到特征值 {ftLmtKey} 的报警值, 请检查组件数据库");
+                        }
+                    }
 
-                    //误差为+- 0.1
-                    if (Math.Abs(ratio - intRatio) <= 0.1) {
+                    //容差为 +- 0.1Hz
+                    if (Math.Abs(ratio - intRatio) <= Const.FtJudgeTolerance) {
                         dot.Features.Add(new FeatureInfo {
                             Name = ft.Key,
                             Ratio = intRatio,
-                            Limit = limit
+                            Limit = lmt
                         });
                     }
                 }
