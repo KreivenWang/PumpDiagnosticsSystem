@@ -14,6 +14,10 @@ namespace PumpDiagnosticsSystem.Models
 
         public string Signal { get; set; }
 
+        public Guid SSGuid { get; set; }
+
+        public Guid PPGuid { get; set; }
+
         /// <summary>
         /// 图谱编号，用于判据判断，在添加图谱时设置编号
         /// </summary>

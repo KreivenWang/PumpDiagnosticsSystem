@@ -30,13 +30,18 @@ namespace PumpDiagnosticsSystem.Util
         public static List<PumpSystem> PumpSysList { get; } = new List<PumpSystem>();
 
         /// <summary>
+        /// 当前诊断中的机泵系统
+        /// </summary>
+        public static PumpSystem DiagnosingPumpSys { get; set; }
+
+        /// <summary>
         /// 机泵系统的更新时间的字典
         /// </summary>
         public static Dictionary<Guid, DateTime?> PumpSysTimeDict { get; } = new Dictionary<Guid, DateTime?>();
 
         public static SpectrumAnalyser SpecAnalyser { get; } = new SpectrumAnalyser();
 
-        public static double GetSpeed()
+        public static double GetRPM()
         {
             return RtData.SpData.First(d => d.Key.Contains("peed")).Value;
         }

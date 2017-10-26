@@ -86,6 +86,8 @@ namespace PumpDiagnosticsSystem.Datas
                     if (sensor == null)
                         continue;
                     Graphs.Add(new Graph {
+                        PPGuid = pumpGuid,
+                        SSGuid = sensor.SSGUID,
                         Signal = PubFuncs.FormatGraphSignal(sensor.SSGUID.ToString(), GraphType.Spectrum),
                         Number = graphNumber++,
                         Pos = pos.Value,
@@ -93,13 +95,13 @@ namespace PumpDiagnosticsSystem.Datas
                     });
 
                     Graphs.Add(new Graph {
+                        PPGuid = pumpGuid,
+                        SSGuid = sensor.SSGUID,
                         Signal = PubFuncs.FormatGraphSignal(sensor.SSGUID.ToString(), GraphType.TimeWave),
                         Number = graphNumber++,
                         Pos = pos.Value,
                         Type = GraphType.TimeWave
                     });
-
-                    
                 }
             }
 

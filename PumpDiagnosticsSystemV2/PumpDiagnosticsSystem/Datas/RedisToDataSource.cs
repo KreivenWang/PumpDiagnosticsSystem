@@ -99,11 +99,11 @@ namespace PumpDiagnosticsSystem.Datas
 //                        datas.RemoveAt(0);
                     graph.UpdateData(datas.ToArray());
                     if (graph.Type == GraphType.Spectrum) {
-                        var speed = RuntimeRepo.GetSpeed();
-                        specs.Add(new Spectrum(speed, graph.Data, graph.Pos));
+                        var rpm = RuntimeRepo.GetRPM();
+                        specs.Add(new Spectrum(graph.PPGuid, graph.SSGuid, rpm, graph.Data, graph.Pos));
                     }
                 }
-                RuntimeRepo.SpecAnalyser.UpdateSpecs(specs);
+                RuntimeRepo.SpecAnalyser.UpdateSpecs(RuntimeRepo.RunningPumpGuids, specs);
             }
         }
 

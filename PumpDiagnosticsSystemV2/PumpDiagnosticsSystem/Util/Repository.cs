@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Linq;
+using PumpDiagnosticsSystem.Core;
 using PumpDiagnosticsSystem.Core.Constructor;
+using PumpDiagnosticsSystem.Core.Parser;
 using PumpDiagnosticsSystem.Datas;
 using PumpDiagnosticsSystem.Dbs;
 using PumpDiagnosticsSystem.Models;
@@ -58,6 +60,10 @@ namespace PumpDiagnosticsSystem.Util
         /// </summary>
         public static Dictionary<string, double> Consts { get; } = new Dictionary<string, double>();
 
+        /// <summary>
+        /// 频谱特征值的报警值
+        /// </summary>
+        public static Dictionary<string, string> SpecFtLimits { get; } = new Dictionary<string, string>();
 
         public static void Initialize()
         {
@@ -89,6 +95,16 @@ namespace PumpDiagnosticsSystem.Util
                 }
             } catch (ArgumentException) {
                 Log.Error($"常量表中找不到 泵站名称：{PSCode ?? "未配置"} 对应的列");
+            }
+
+            #endregion
+
+            #region 特征值报警值部分
+
+            foreach (DataRow row in PumpSysLib.TableSpectrumFeature.Rows) {
+                var ftNameStr = row["FtName"].ToString();
+                var lmtValueStr = row["FtLimit"].ToString();
+                SpecFtLimits.Add(ftNameStr, lmtValueStr);
             }
 
             #endregion

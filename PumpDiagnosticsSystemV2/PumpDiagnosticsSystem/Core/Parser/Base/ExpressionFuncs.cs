@@ -161,7 +161,8 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
         {
             var result = 0D;
 
-            var specs = RuntimeRepo.SpecAnalyser.BrPoses_Specs[(int) driver].ToList();
+            var specs =
+                RuntimeRepo.SpecAnalyser.BrPoses_Specs_Dict[RuntimeRepo.DiagnosingPumpSys.Guid][(int) driver].ToList();
             specs.RemoveAll(s => s == null);
 
             if (!specs.Any()) {
@@ -169,21 +170,19 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
                 return result;
             }
 
-            var maxVibraValue = specs.Max(s => s.MVF.Value);
-            var maxVibraSpec = specs.First(s => s.MVF.Value == maxVibraValue);
-            var maxVibraFeature = maxVibraSpec.MVF.Feature;
+            var maxVibraValue = specs.Max(s => s.MVDot.Y);
+            var maxVibraSpec = specs.First(s => s.MVDot.Y == maxVibraValue);
+            var maxVibraFeatures = maxVibraSpec.MVDot.Features;
 
-            if (maxVibraFeature.HasValue) {
-                //主频超标
-                if (maxVibraSpec.High(maxVibraFeature.Value)) {
+            //主频点中存在特征值超标
+            if (maxVibraFeatures.Exists(ft => maxVibraSpec.High(ft))) {
 
-                    //且 大于ratio倍的 至少一个 其他2个方向 的振值
-                    foreach (var spec in specs) {
-                        LogToRtData(spec.Pos.DirectionPos.ToString(), spec.MVF.Value);
-                        if (maxVibraSpec != spec) {
-                            if (maxVibraValue >= spec.MVF.Value * ratio) {
-                                result = 1D;
-                            }
+                //且 大于ratio倍的 至少一个 其他2个方向 的振值
+                foreach (var spec in specs) {
+                    LogToRtData(spec.Pos.DirectionPos.ToString(), spec.MVDot.Y);
+                    if (maxVibraSpec != spec) {
+                        if (maxVibraValue >= spec.MVDot.Y*ratio) {
+                            result = 1D;
                         }
                     }
                 }
@@ -192,7 +191,7 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             //如果没有共振的话，记录所有的当前值，供参考分析
             if (result == 0D) {
                 foreach (var spec in specs) {
-                    LogToRtData(spec.Pos.DirectionPos.ToString(), spec.MVF.Value);
+                    LogToRtData(spec.Pos.DirectionPos.ToString(), spec.MVDot.Y);
                 }
             }
             return result;

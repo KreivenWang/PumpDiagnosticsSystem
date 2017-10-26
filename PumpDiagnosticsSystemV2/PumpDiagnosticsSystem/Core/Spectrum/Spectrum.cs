@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using PumpDiagnosticsSystem.Core.Parser;
+using PumpDiagnosticsSystem.Datas;
 using PumpDiagnosticsSystem.Dbs;
 using PumpDiagnosticsSystem.Models;
 using PumpDiagnosticsSystem.Util;
@@ -23,7 +24,7 @@ namespace PumpDiagnosticsSystem.Core
             /// <summary>
             /// 频率宽度(Hz)
             /// </summary>
-            public static double FrequncyWidth { get; } = 1000D;
+            public static double FrequencyWidth { get; } = 1000D;
 
             /// <summary>
             /// 报警值,暂时没用到,还是用的access的const表中的#MAX_A_VIBRATOIN
@@ -50,15 +51,50 @@ namespace PumpDiagnosticsSystem.Core
             public static double NoiseMinWidthPercent { get; } = 1D/3D;
         }
 
+        public class Dot
+        {
+            /// <summary>
+            /// 编号, 索引
+            /// </summary>
+            public int Index { get; set; }
+
+            /// <summary>
+            /// Hz
+            /// </summary>
+            public double X { get; set; }
+
+            /// <summary>
+            /// mm/s
+            /// </summary>
+            public double Y { get; set; }
+
+            /// <summary>
+            /// 特征值的倍数
+            /// </summary>
+            public List<FeatureInfo> Features  { get; } = new List<FeatureInfo>();
+
+            public Dot(int index, double y)
+            {
+                Index = index;
+                Y = y;
+            }
+        }
+
+        /// <summary>
+        /// 特征值名称枚举
+        /// </summary>
+        public enum FtName
+        {
+            RPS,
+            BPFI,
+            BPFO,
+            BSF,
+            FTF,
+            BPF
+        }
+
         public class FeatureInfo
         {
-            public enum FtName
-            {
-                Ft_1X,
-                Ft_2X,
-                Ft_3X,
-            }
-
             /// <summary>
             /// 特征值名称
             /// </summary>
@@ -70,16 +106,19 @@ namespace PumpDiagnosticsSystem.Core
             public double Limit { get; set; }
 
             /// <summary>
-            /// 计算所在频率线时, 转速前的系数
+            /// 特征值的倍数
             /// </summary>
-            public double RPSCoefficient { get; set; }
+            public int Ratio { get; set; }
 
-            /// <summary>
-            /// 所在线
-            /// </summary>
-            public int Line { get; set; }
+            public bool IsSameFeature(FeatureInfo ft)
+            {
+                return Name == ft.Name && Ratio == ft.Ratio;
+            }
 
-            public string Description { get; set; }
+            public bool IsSameFeature(FtName name, int ratio)
+            {
+                return Name == name && Ratio == ratio;
+            }
         }
 
         public class Position
@@ -143,7 +182,7 @@ namespace PumpDiagnosticsSystem.Core
         {
             public class X
             {
-                public double Width { get; set; } = Const.FrequncyWidth;
+                public double Width { get; set; } = Const.FrequencyWidth;
 
                 public int LineCount { get; set; }
 
@@ -160,6 +199,19 @@ namespace PumpDiagnosticsSystem.Core
         }
 
         /// <summary>
+        /// 主振频率
+        /// </summary>
+        public struct MainVibraFrequency
+        {
+            /// <summary>
+            /// 这个值的赋值没测过,写法可能有问题
+            /// </summary>
+            public FtName? Feature { get; set; }
+
+            public double Value { get; set; }
+        }
+
+        /// <summary>
         /// 底脚噪音区
         /// </summary>
         public class FooterNoiseRegion
@@ -172,21 +224,20 @@ namespace PumpDiagnosticsSystem.Core
         }
 
         /// <summary>
-        /// 主振频率
+        /// 主峰和边频带组成的峰群
         /// </summary>
-        public struct MainVibraFrequency
+        public class SidePeakGroup
         {
-            /// <summary>
-            /// 这个值的赋值没测过,写法可能有问题
-            /// </summary>
-            public FeatureInfo.FtName? Feature { get; set; }
-
-            public double Value { get; set; }
+             
         }
 
         #endregion
 
         #region properties
+
+        public Guid PPGuid { get; }
+
+        public Guid SSGuid { get; }
 
         /// <summary>
         /// 每秒钟的转速(Hz) Revelutions Per Second
@@ -198,22 +249,29 @@ namespace PumpDiagnosticsSystem.Core
         /// </summary>
         public double RPM { get; }
 
-        public Dictionary<int, double> Dots { get; } = new Dictionary<int, double>();
+        /// <summary>
+        /// 这里DotList的索引和Dot本身的Index保持一致
+        /// </summary>
+        public List<Dot> Dots { get; } = new List<Dot>();
 
+        /// <summary>
+        /// 图谱的位置
+        /// </summary>
         public Position Pos { get; } = new Position();
 
         public Axis.X AxisX { get; } = new Axis.X();
 
         public Axis.Y AxisY { get; } = new Axis.Y();
 
-        public MainVibraFrequency MVF { get; private set; }
+        /// <summary>
+        /// 主振频率点
+        /// </summary>
+        public Dot MVDot { get; private set; }
 
         /// <summary>
         /// 波峰所在点列表
         /// </summary>
-        public Dictionary<int, double> PeakDots { get; private set; } = new Dictionary<int, double>();
-
-        public List<FeatureInfo> Features { get; } = new List<FeatureInfo>();
+        public List<Dot> PeakDots { get; private set; } = new List<Dot>();
 
         /// <summary>
         /// 零位，即图谱中y轴最小的值
@@ -228,7 +286,12 @@ namespace PumpDiagnosticsSystem.Core
         /// <summary>
         /// 底脚噪音的起始和结束编号列表
         /// </summary>
-        public List<Tuple<int,int>> NoiseIndexes { get; private set; } = new List<Tuple<int, int>>(); 
+        public List<Tuple<int,int>> NoiseIndexes { get; private set; } = new List<Tuple<int, int>>();
+
+        /// <summary>
+        /// 特征值对应的转速系数表
+        /// </summary>
+        public Dictionary<FtName, double> FtDict { get; } = new Dictionary<FtName, double>(6);
 
         #endregion
 
@@ -263,17 +326,20 @@ namespace PumpDiagnosticsSystem.Core
 
         #region ctor
 
-        public Spectrum(double rpm, IEnumerable<double> data, TdPos tdPos)
+        public Spectrum(Guid ppGuid, Guid ssGuid, double rpm, IEnumerable<double> data, TdPos tdPos)
         {
+            PPGuid = ppGuid;
+            SSGuid = ssGuid;
             RPM = rpm;
             RPS = RPM/60; //每分钟转换成每秒钟的转速
-
+            AxisX.LineCount = data.Count();
             SetDots(data);
-            SetAxisX();
+            SetFtDict();
+            SetDotFeatures();
             ParseTdPosToPosition(tdPos);
-            SetFeatures();
+
             SetPeakDots();
-            SetMainVibra();
+            SetMainVibraDot();
             SetZero();
             SetNoiseRegions();
         }
@@ -282,13 +348,55 @@ namespace PumpDiagnosticsSystem.Core
         {
             var dataArray = data.ToArray();
             for (int i = 0; i < dataArray.Length; i++) {
-                Dots.Add(i, dataArray[i]);
+                var dot = new Dot(i, dataArray[i]);
+                dot.X = dot.Index*AxisX.Dpl;
+                Dots.Add(dot);
             }
         }
 
-        private void SetAxisX()
+        private void SetFtDict()
         {
-            AxisX.LineCount = Dots.Count;
+            FtDict.Clear();
+
+            var brInfoDict = (Pos.CompPos == Position.Component.Pump
+                ? DataDetailsOp.GetPumpBearingInfos(PPGuid)
+                : DataDetailsOp.GetMotorBearingInfos(PPGuid))
+                .Where(b => b.Key.Contains(Pos.DriverPos == Position.Driver.In ? "_In" : "_Out"))
+                .ToDictionary(b => b.Key.Split('_')[0].Replace("@", string.Empty), b => b.Value);
+
+            var fanCount = DataDetailsOp.GetPumpFanCount(PPGuid);
+
+            FtDict.Add(FtName.RPS, 1);
+            FtDict.Add(FtName.BPFI, brInfoDict[FtName.BPFI.ToString()]);
+            FtDict.Add(FtName.BPFO, brInfoDict[FtName.BPFO.ToString()]);
+            FtDict.Add(FtName.BSF, brInfoDict[FtName.BSF.ToString()]);
+            FtDict.Add(FtName.FTF, brInfoDict[FtName.FTF.ToString()]);
+            FtDict.Add(FtName.BPF, fanCount);
+        }
+
+        private void SetDotFeatures()
+        {
+            foreach (var dot in Dots) {
+                foreach (var ft in FtDict) {
+                    var ratio = dot.X / (ft.Value * RPS);
+                    var intRatio = (int)Math.Round(ratio);
+                    if (intRatio == 0)
+                        continue;
+
+                    //获取报警值
+                    var limitExp = Repo.SpecFtLimits[$"{Pos.CompPos}_{ft.Key}_{intRatio}"];
+                    var limit = EasyParser.Parse(limitExp);
+
+                    //误差为+- 0.1
+                    if (Math.Abs(ratio - intRatio) <= 0.1) {
+                        dot.Features.Add(new FeatureInfo {
+                            Name = ft.Key,
+                            Ratio = intRatio,
+                            Limit = limit
+                        });
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -319,43 +427,6 @@ namespace PumpDiagnosticsSystem.Core
             }
         }
 
-        private void SetFeatures()
-        {
-            //需要读数据库+计算来替换特征值的获取
-//            FeatureDescs = new Dictionary<string, double> {
-//                {"1/2L", 2/8D},
-//                {"1/2G", 5/8D},
-//                {"1X", 8/8D},
-//                {"2X", 16/8D},
-//                {"3X", 24/8D},
-//                {"BPFI", 6.5}
-//            };
-
-            //设置报警值
-            foreach (DataRow row in PumpSysLib.TableSpectrumFeature.Rows) {
-                var ftNameStr = row["FtName"].ToString();
-                var compPosStr = Pos.CompPos.ToString();
-                if (!ftNameStr.Contains(compPosStr)) continue;
-
-                var ft = new FeatureInfo();
-                ft.Name =
-                    (FeatureInfo.FtName) Enum.Parse(typeof (FeatureInfo.FtName), ftNameStr.Replace(compPosStr, "Ft_"));
-                var lmtValueStr = row["FtLimit"].ToString();
-                foreach (var @const in Repo.Consts) {
-                    if (lmtValueStr.Contains(@const.Key))
-                        lmtValueStr = lmtValueStr.Replace(@const.Key, @const.Value.ToString());
-                }
-                ft.Limit = EasyParser.Parse(lmtValueStr);
-                ft.RPSCoefficient = double.Parse(row["SpeedCoefficient"].ToString());
-                ft.Description = row["FtDesc"].ToString();
-
-                Features.Add(ft);
-            }
-            foreach (var ft in Features) {
-                ft.Line = FeatureLine(ft.Name);
-            }
-        }
-
         /// <summary>
         /// 计算峰值点
         /// </summary>
@@ -368,36 +439,26 @@ namespace PumpDiagnosticsSystem.Core
                 var curDot = Dots[i];
                 var prevDot = Dots[i - 1];
                 var nextDot = Dots[i + 1];
-                if (curDot > prevDot && curDot > nextDot) {
-                    PeakDots.Add(i, Dots[i]);
+                if (curDot.Y > prevDot.Y && curDot.Y > nextDot.Y) {
+                    PeakDots.Add(curDot);
                 }
             }
 
             //按峰值从高到低排序
-            PeakDots = PeakDots.OrderByDescending(p => p.Value).ToDictionary(o => o.Key, o => o.Value);
+            PeakDots = PeakDots.OrderByDescending(p => p.Y).ToList();
         }
 
         /// <summary>
-        /// 计算主频
+        /// 设置主频点
         /// </summary>
-        public void SetMainVibra()
+        public void SetMainVibraDot()
         {
-            var maxPeakLine = PeakDots.ElementAt(0).Key;
-            var maxPeakValue = PeakDots.ElementAt(0).Value;
-            FeatureInfo.FtName? ftName = null;
-            foreach (var feature in Features) {
-                if (maxPeakLine == feature.Line)
-                    ftName = feature.Name;
-            }
-            MVF = new MainVibraFrequency {
-                Value = maxPeakValue,
-                Feature = ftName
-            };
+            MVDot = PeakDots[0];
         }
 
         private void SetZero()
         {
-            var minDotY = Dots.Values.Min();
+            var minDotY = Dots.Select(d => d.Y).Min();
             //var minDotX = Data.ToList().IndexOf(minDotY);
 
             Zero = minDotY*Const.ZeroRatio;
@@ -408,9 +469,9 @@ namespace PumpDiagnosticsSystem.Core
             //设置噪音分区
             var lastIndex = Const.RegionPartitions.Count - 1;
             for (int i = 0; i < Const.RegionPartitions.Count; i++) {
-                var cur = Const.RegionPartitions[i]*RPM;
+                var cur = Const.RegionPartitions[i]*RPS;
                 if (i != lastIndex) {
-                    var next = Const.RegionPartitions[i + 1]*RPM;
+                    var next = Const.RegionPartitions[i + 1]*RPS;
                     var region = new FooterNoiseRegion {
                         BeginFrequence = cur,
                         EndFrequence = next
@@ -420,15 +481,15 @@ namespace PumpDiagnosticsSystem.Core
                     //至FMax
                     var region = new FooterNoiseRegion {
                         BeginFrequence = cur,
-                        EndFrequence = FMax(RPM)
+                        EndFrequence = FMax(RPM)/60 //统一使用RPS
                     };
                     NoiseRegions.Add(region);
                 }
             }
 
             //寻找噪音段
-            var overDotXs = Dots.Where(d => d.Value > AxisY.AlarmValue*Const.NoiseAlarmPercent)
-                .Select(d => d.Key).ToList();
+            var overDotXs = Dots.Where(d => d.Y > AxisY.AlarmValue*Const.NoiseAlarmPercent)
+                .Select(d => d.Index).ToList();
 
             //获取连续的值 组成的列表
             var continuesPairs = PubFuncs.FindContinues(overDotXs);
@@ -443,12 +504,13 @@ namespace PumpDiagnosticsSystem.Core
 
         #region public methods
 
-        public FeatureInfo MatchFt(FeatureInfo.FtName ftName)
-        {
-            return Features.Find(f => f.Name == ftName);
-        }
-
-        public double Aggregate(double start, double end)
+        /// <summary>
+        /// 计算范围内的Y值累加值
+        /// </summary>
+        /// <param name="start">起始频率</param>
+        /// <param name="end">结束频率</param>
+        /// <returns></returns>
+        public double AggregateRange(double start, double end)
         {
             var result = 0D;
             int startPoint = (int) Math.Round(start*RPS/AxisX.Dpl) - 1;
@@ -463,12 +525,32 @@ namespace PumpDiagnosticsSystem.Core
             point++;
 
             for (; point <= endPoint; point++) {
-                result += Dots[point];
+                result += Dots[point].Y;
             }
             return result;
         }
 
-        public double GetFeatureValue(FeatureInfo.FtName ftName)
+        public bool High(FeatureInfo ft)
+        {
+            //找到相同特征值 并且 是波峰 的点
+            var matchDot = Dots.FirstOrDefault(d => d.Features.Exists(f=>f.IsSameFeature(ft)) && PeakDots.Contains(d));
+            if (matchDot == null) return false;
+            return matchDot.Y > ft.Limit;
+        }
+
+        #endregion
+
+        #region Obsolete
+
+        private const string _ObsoleteFeatureAlgorithmMessage = @"不再使用该方法计算得出特征值所在点的Y值. 现在的算法为: 计算每个频谱点都可能存在的特征值.";
+
+        /// <summary>
+        /// 获取特征值所在点的Y值
+        /// </summary>
+        /// <param name="ftName"></param>
+        /// <returns></returns>
+        [Obsolete(_ObsoleteFeatureAlgorithmMessage)]
+        public double GetFeatureValue(FtName ftName)
         {
             double result;
 
@@ -481,9 +563,9 @@ namespace PumpDiagnosticsSystem.Core
             var gdtEnd = Dots[dotEnd];
 
             //中间值必须为波峰
-            if (gdtMiddle > gdtStart && gdtMiddle > gdtEnd) {
+            if (gdtMiddle.Y > gdtStart.Y && gdtMiddle.Y > gdtEnd.Y) {
                 //result = gdtStart + gdtMiddle + gdtEnd;
-                result = gdtMiddle;
+                result = gdtMiddle.Y;
             } else {
                 result = -1;
             }
@@ -495,22 +577,18 @@ namespace PumpDiagnosticsSystem.Core
         /// </summary>
         /// <param name="ftName"></param>
         /// <returns></returns>
-        public int FeatureLine(FeatureInfo.FtName ftName)
+        [Obsolete(_ObsoleteFeatureAlgorithmMessage)]
+        public int FeatureLine(FtName ftName)
         {
-            var rpmCoeff = MatchFt(ftName).RPSCoefficient;
-            var lineLeft = (int) Math.Round(rpmCoeff*RPS/AxisX.Dpl, MidpointRounding.AwayFromZero);
+            var rpsCoeff = FtDict[ftName];
+            var lineLeft = (int)Math.Round(rpsCoeff * RPS / AxisX.Dpl, MidpointRounding.AwayFromZero);
             var lineRight = lineLeft + 1;
 
             var gdtLeft = Dots[lineLeft];
             var gdtRight = Dots[lineRight];
 
-            var higherLine = gdtRight > gdtLeft ? lineRight : lineLeft;
+            var higherLine = gdtRight.Y > gdtLeft.Y ? lineRight : lineLeft;
             return higherLine;
-        }
-
-        public bool High(FeatureInfo.FtName ftName)
-        {
-            return GetFeatureValue(ftName) > MatchFt(ftName).Limit;
         }
 
         #endregion

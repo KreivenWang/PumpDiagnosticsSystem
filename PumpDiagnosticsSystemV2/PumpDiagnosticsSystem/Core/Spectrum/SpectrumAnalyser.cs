@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace PumpDiagnosticsSystem.Core
@@ -7,44 +8,50 @@ namespace PumpDiagnosticsSystem.Core
     {
         public List<Spectrum> Specs { get; } = new List<Spectrum>();
 
-        public Spectrum[][] BrPoses_Specs { get; private set; }
+        public Dictionary<Guid, Spectrum[][]>  BrPoses_Specs_Dict { get; private set; } = new Dictionary<Guid, Spectrum[][]>();
 
         public SpectrumAnalyser()
         {
         }
 
-        public void UpdateSpecs(List<Spectrum> specs)
+        public void UpdateSpecs(List<Guid> runningPPGuids, List<Spectrum> specs)
         {
             Specs.Clear();
             Specs.AddRange(specs);
-            ClassifySpecsBs();
+            foreach (var ppGuid in runningPPGuids) {
+                ClassifySpecsBs(ppGuid);
+            }
         }
 
         /// <summary>
         /// 从左到右:水泵非驱动端到电机非驱动端为0,1,2,3
         /// </summary>
-        private void ClassifySpecsBs()
+        private void ClassifySpecsBs(Guid ppGuid)
         {
-            BrPoses_Specs = new Spectrum[4][];
+            BrPoses_Specs_Dict.Clear();
+            
+            var value_BrPoses_Specs = new Spectrum[4][];
             for (int i = 0; i < 4; i++) {
-                BrPoses_Specs[i] = new Spectrum[3];
+                value_BrPoses_Specs[i] = new Spectrum[3];
             }
 
-            BrPoses_Specs[0][0] = Specs.FirstOrDefault(s => s.Pos.IsPumpOutX);
-            BrPoses_Specs[0][1] = Specs.FirstOrDefault(s => s.Pos.IsPumpOutY);
-            BrPoses_Specs[0][2] = Specs.FirstOrDefault(s => s.Pos.IsPumpOutZ);
+            value_BrPoses_Specs[0][0] = Specs.FirstOrDefault(s => s.Pos.IsPumpOutX && s.PPGuid == ppGuid);
+            value_BrPoses_Specs[0][1] = Specs.FirstOrDefault(s => s.Pos.IsPumpOutY && s.PPGuid == ppGuid);
+            value_BrPoses_Specs[0][2] = Specs.FirstOrDefault(s => s.Pos.IsPumpOutZ && s.PPGuid == ppGuid);
 
-            BrPoses_Specs[1][0] = Specs.FirstOrDefault(s => s.Pos.IsPumpInX);
-            BrPoses_Specs[1][1] = Specs.FirstOrDefault(s => s.Pos.IsPumpInY);
-            BrPoses_Specs[1][2] = Specs.FirstOrDefault(s => s.Pos.IsPumpInZ);
+            value_BrPoses_Specs[1][0] = Specs.FirstOrDefault(s => s.Pos.IsPumpInX && s.PPGuid == ppGuid);
+            value_BrPoses_Specs[1][1] = Specs.FirstOrDefault(s => s.Pos.IsPumpInY && s.PPGuid == ppGuid);
+            value_BrPoses_Specs[1][2] = Specs.FirstOrDefault(s => s.Pos.IsPumpInZ && s.PPGuid == ppGuid);
 
-            BrPoses_Specs[2][0] = Specs.FirstOrDefault(s => s.Pos.IsMotorInX);
-            BrPoses_Specs[2][1] = Specs.FirstOrDefault(s => s.Pos.IsMotorInY);
-            BrPoses_Specs[2][2] = Specs.FirstOrDefault(s => s.Pos.IsMotorInZ);
+            value_BrPoses_Specs[2][0] = Specs.FirstOrDefault(s => s.Pos.IsMotorInX && s.PPGuid == ppGuid);
+            value_BrPoses_Specs[2][1] = Specs.FirstOrDefault(s => s.Pos.IsMotorInY && s.PPGuid == ppGuid);
+            value_BrPoses_Specs[2][2] = Specs.FirstOrDefault(s => s.Pos.IsMotorInZ && s.PPGuid == ppGuid);
 
-            BrPoses_Specs[3][0] = Specs.FirstOrDefault(s => s.Pos.IsMotorOutX);
-            BrPoses_Specs[3][1] = Specs.FirstOrDefault(s => s.Pos.IsMotorOutY);
-            BrPoses_Specs[3][2] = Specs.FirstOrDefault(s => s.Pos.IsMotorOutZ);
+            value_BrPoses_Specs[3][0] = Specs.FirstOrDefault(s => s.Pos.IsMotorOutX && s.PPGuid == ppGuid);
+            value_BrPoses_Specs[3][1] = Specs.FirstOrDefault(s => s.Pos.IsMotorOutY && s.PPGuid == ppGuid);
+            value_BrPoses_Specs[3][2] = Specs.FirstOrDefault(s => s.Pos.IsMotorOutZ && s.PPGuid == ppGuid);
+
+            BrPoses_Specs_Dict.Add(ppGuid, value_BrPoses_Specs);
         }
 
         private bool IsNearbySpec(Spectrum.Position pos1, Spectrum.Position pos2)

@@ -30,13 +30,19 @@ namespace PumpDiagnosticsSystem.Business
                 Log.Inform();
                 Log.Inform($"********* 开始诊断机组：{guid} *********", true);
                 Log.Inform();
-                var ppsys = RuntimeRepo.PumpSysList.First(ps => GuidExt.IsSameGuid(guid, ps.Guid));
+
+                //设置判据判断结果用的 传感器数据更新时间
                 _ctParser.TdUpdateTime = RuntimeRepo.PumpSysTimeDict[guid] ?? DateTime.Now;
-                DiagnoseRunningPump_Round1(ppsys);
-                DiagnoseRunningPump_Round2(ppsys);
-                FindMainVibraSpec(ppsys);
+
+                //设置需要进行诊断的机泵系统
+                RuntimeRepo.DiagnosingPumpSys = RuntimeRepo.PumpSysList.First(ps => GuidExt.IsSameGuid(guid, ps.Guid));
+
+                //开始诊断
+                DiagnoseRunningPump_Round1(RuntimeRepo.DiagnosingPumpSys);
+                DiagnoseRunningPump_Round2(RuntimeRepo.DiagnosingPumpSys);
+                FindMainVibraSpec(RuntimeRepo.DiagnosingPumpSys);
 #if DEBUG
-                RabbitToPandas(ppsys);
+                RabbitToPandas(RuntimeRepo.DiagnosingPumpSys);
 #endif
                 Log.Inform();
                 Log.Inform($"********* 机组：{guid} 诊断结束 ********", true);
