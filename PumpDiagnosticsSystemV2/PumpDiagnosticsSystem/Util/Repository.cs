@@ -101,9 +101,9 @@ namespace PumpDiagnosticsSystem.Util
 
             #region 特征值报警值部分
 
-            foreach (DataRow row in PumpSysLib.TableSpectrumFeature.Rows) {
+            foreach (DataRow row in PumpSysLib.TableSpectrumAlarm.Rows) {
                 var ftNameStr = row["FtName"].ToString();
-                var lmtExp = row["FtLimit"].ToString();
+                var lmtExp = row["FtAlarm"].ToString();
                
                 //替换报警值表达式中的常量
                 foreach (var @const in Repo.Consts) {
