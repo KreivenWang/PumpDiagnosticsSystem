@@ -81,5 +81,13 @@ namespace PumpDiagnosticsSystem.Util
             }
             return result;
         }
+
+        /// <summary>
+        /// 列表是否包含指定索引
+        /// </summary>
+        public static bool ContainsIndex<T>(this IList<T> list, int index)
+        {
+            return index >= 0 && index < list.Count;
+        }
     }
 }

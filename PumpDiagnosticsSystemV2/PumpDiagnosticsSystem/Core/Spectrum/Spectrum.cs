@@ -53,7 +53,7 @@ namespace PumpDiagnosticsSystem.Core
             /// <summary>
             /// 判断为特征点频率的容差
             /// </summary>
-            public static double FtJudgeTolerance { get; } = 0.1D;
+            public static double FtJudgeTolerance { get; } = 0.000625D;//V1: 0.1找到了4个特征一样的点
         }
 
         public class Dot
@@ -220,7 +220,14 @@ namespace PumpDiagnosticsSystem.Core
         /// </summary>
         public class SidePeakGroup
         {
-             
+            public Dot MainPeak { get; set; }
+
+            public List<Dot> SidePeaks { get; } = new List<Dot>();
+
+            public SidePeakGroup(Dot mainPeak)
+            {
+                MainPeak = mainPeak;
+            }
         }
 
         #endregion
@@ -263,7 +270,12 @@ namespace PumpDiagnosticsSystem.Core
         /// <summary>
         /// 波峰所在点列表
         /// </summary>
-        public List<Dot> PeakDots { get; private set; } = new List<Dot>();
+        public List<Dot> PeakDots { get; } = new List<Dot>();
+
+        /// <summary>
+        /// 特征值对应的转速系数表
+        /// </summary>
+        public Dictionary<FtName, double> FtCoeffDict { get; } = new Dictionary<FtName, double>(6);
 
         /// <summary>
         /// 零位，即图谱中y轴最小的值
@@ -281,9 +293,9 @@ namespace PumpDiagnosticsSystem.Core
         public List<Tuple<int,int>> NoiseIndexes { get; private set; } = new List<Tuple<int, int>>();
 
         /// <summary>
-        /// 特征值对应的转速系数表
+        /// 边频峰群列表
         /// </summary>
-        public Dictionary<FtName, double> FtDict { get; } = new Dictionary<FtName, double>(6);
+        public List<SidePeakGroup> SidePeakGroups { get; } = new List<SidePeakGroup>(); 
 
         #endregion
 
@@ -327,13 +339,14 @@ namespace PumpDiagnosticsSystem.Core
             AxisX.LineCount = data.Count();
             SetDots(data);
             SetFtDict();
-            SetDotFeatures();
             ParseTdPosToPosition(tdPos);
 
             SetPeakDots();
+            SetPeakDotFeatures();
             SetMainVibraDot();
             SetZero();
             SetNoiseRegions();
+            SetSidePeaksGroups();
         }
 
         private void SetDots(IEnumerable<double> data)
@@ -348,10 +361,10 @@ namespace PumpDiagnosticsSystem.Core
 
         private void SetFtDict()
         {
-            FtDict.Clear();
+            FtCoeffDict.Clear();
 
             //RPS
-            FtDict.Add(FtName.RPS, 1);
+            FtCoeffDict.Add(FtName.RPS, 1);
 
             //BEARING
             var brInfoDict = (Pos.CompPos == Position.Component.Pump
@@ -360,53 +373,15 @@ namespace PumpDiagnosticsSystem.Core
                 .Where(b => b.Key.Contains(Pos.DriverPos == Position.Driver.In ? "_In" : "_Out"))
                 .ToDictionary(b => b.Key.Split('_')[0].Replace("@", string.Empty), b => b.Value);
             
-            FtDict.Add(FtName.BPFI, brInfoDict[FtName.BPFI.ToString()]);
-            FtDict.Add(FtName.BPFO, brInfoDict[FtName.BPFO.ToString()]);
-            FtDict.Add(FtName.BSF, brInfoDict[FtName.BSF.ToString()]);
-            FtDict.Add(FtName.FTF, brInfoDict[FtName.FTF.ToString()]);
+            FtCoeffDict.Add(FtName.BPFI, brInfoDict[FtName.BPFI.ToString()]);
+            FtCoeffDict.Add(FtName.BPFO, brInfoDict[FtName.BPFO.ToString()]);
+            FtCoeffDict.Add(FtName.BSF, brInfoDict[FtName.BSF.ToString()]);
+            FtCoeffDict.Add(FtName.FTF, brInfoDict[FtName.FTF.ToString()]);
 
             //PUMP - BPF
             if (Pos.CompPos == Position.Component.Pump) {
                 var fanCount = DataDetailsOp.GetPumpFanCount(PPGuid);
-                FtDict.Add(FtName.BPF, fanCount);
-            }
-        }
-
-        private void SetDotFeatures()
-        {
-            foreach (var dot in Dots) {
-                foreach (var ft in FtDict) {
-                    var ratio = dot.X / (ft.Value * RPS);
-                    var intRatio = (int)Math.Round(ratio);
-                    if (intRatio == 0)
-                        continue;
-
-                    //获取报警值
-                    //先按照有倍数的找
-                    var ftLmtKey = $"{Pos.CompPos}_{ft.Key}_{intRatio}";
-                    var lmt = 999999D;
-                    if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
-                        lmt = Repo.SpecFtLimits[ftLmtKey];
-                    } else {
-                        //没找到有倍数的,就按默认1倍的找
-                        ftLmtKey = $"{Pos.CompPos}_{ft.Key}_1";
-                        if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
-                            lmt = Repo.SpecFtLimits[ftLmtKey];
-                        } else {
-                            //再找不到, 添加日志
-                            Log.Error($"找不到特征值 {ftLmtKey} 的报警值, 请检查组件数据库");
-                        }
-                    }
-
-                    //容差为 +- 0.1Hz
-                    if (Math.Abs(ratio - intRatio) <= Const.FtJudgeTolerance) {
-                        dot.Features.Add(new FeatureInfo {
-                            Name = ft.Key,
-                            Ratio = intRatio,
-                            Limit = lmt
-                        });
-                    }
-                }
+                FtCoeffDict.Add(FtName.BPF, fanCount);
             }
         }
 
@@ -454,9 +429,88 @@ namespace PumpDiagnosticsSystem.Core
                     PeakDots.Add(curDot);
                 }
             }
+        }
 
-            //按峰值从高到低排序
-            PeakDots = PeakDots.OrderByDescending(p => p.Y).ToList();
+        /// <summary>
+        /// 计算峰值点的特征点
+        /// </summary>
+        private void SetPeakDotFeatures()
+        {
+            foreach (var ftCoeff in FtCoeffDict) {
+                for (int i = 1; i < AxisX.Width; i++) {
+                    //转速x特征值系数x倍数
+                    var m = RPS*ftCoeff.Value*i;
+                    if (m > AxisX.Width) break;
+                    var lineLeft = (int) Math.Round(m/AxisX.Dpl, MidpointRounding.AwayFromZero);
+                    var lineRight = lineLeft + 1;
+                    var matchPeakDot = PeakDots.Find(d => d.Index == lineLeft) ??
+                                       PeakDots.Find(d => d.Index == lineRight);
+                    if (matchPeakDot != null) {
+                        //获取报警值
+                        //先按照有倍数的找
+                        var ftLmtKey = $"{Pos.CompPos}_{ftCoeff.Key}_{i}";
+                        var lmt = 999999D;
+                        if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
+                            lmt = Repo.SpecFtLimits[ftLmtKey];
+                        } else {
+                            //没找到有倍数的,就按默认1倍的找
+                            ftLmtKey = $"{Pos.CompPos}_{ftCoeff.Key}_1";
+                            if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
+                                lmt = Repo.SpecFtLimits[ftLmtKey];
+                            } else {
+                                //再找不到, 添加日志
+                                Log.Error($"找不到特征值 {ftLmtKey} 的报警值, 请检查组件数据库");
+                            }
+                        }
+
+                        matchPeakDot.Features.Add(new FeatureInfo {
+                            Name = ftCoeff.Key,
+                            Ratio = i,
+                            Limit = lmt
+                        });
+                    }
+                }
+            }
+
+            #region //原来按照X的误差值去匹配的算法
+
+//            foreach (var peakDot in PeakDots) {
+//                foreach (var ftCoeff in FtCoeffDict) {
+//                    var possiblePeakIndex = FeatureLine(ftCoeff.Key);
+//                    var ratio = peakDot.X / (ftCoeff.Value * RPS);
+//                    var intRatio = (int)Math.Round(ratio);
+//                    if (intRatio == 0)
+//                        continue;
+//
+//                    //获取报警值
+//                    //先按照有倍数的找
+//                    var ftLmtKey = $"{Pos.CompPos}_{ftCoeff.Key}_{intRatio}";
+//                    var lmt = 999999D;
+//                    if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
+//                        lmt = Repo.SpecFtLimits[ftLmtKey];
+//                    } else {
+//                        //没找到有倍数的,就按默认1倍的找
+//                        ftLmtKey = $"{Pos.CompPos}_{ftCoeff.Key}_1";
+//                        if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
+//                            lmt = Repo.SpecFtLimits[ftLmtKey];
+//                        } else {
+//                            //再找不到, 添加日志
+//                            Log.Error($"找不到特征值 {ftLmtKey} 的报警值, 请检查组件数据库");
+//                        }
+//                    }
+//
+//                    //容差为 +- 0.1Hz
+//                    if (Math.Abs(ratio - intRatio) <= Const.FtJudgeTolerance) {
+//                        peakDot.Features.Add(new FeatureInfo {
+//                            Name = ftCoeff.Key,
+//                            Ratio = intRatio,
+//                            Limit = lmt
+//                        });
+//                    }
+//                }
+//            }
+
+            #endregion
         }
 
         /// <summary>
@@ -464,7 +518,7 @@ namespace PumpDiagnosticsSystem.Core
         /// </summary>
         public void SetMainVibraDot()
         {
-            MVDot = PeakDots[0];
+            MVDot = PeakDots.OrderByDescending(p => p.Y).First();
         }
 
         private void SetZero()
@@ -511,6 +565,68 @@ namespace PumpDiagnosticsSystem.Core
 
         }
 
+        private void SetSidePeaksGroups()
+        {
+            SidePeakGroups.Clear();
+            
+            var findSidePeakGroupsAction = new Action<List<Dot>, List<Dot>>
+                ((mainPeaks, sidePeaks) =>
+            {
+                
+                foreach (var mainPeak in mainPeaks) {
+
+                    var localRange = 50;
+                    var mainPeakOverRatio = 1.5D;
+                    //峰值要大于 当地的点(前后50个点)的平均值 的1.5倍
+                    var localStart = mainPeak.Index - localRange;
+                    if (localStart < 0)
+                        localStart = 1;
+                    var localEnd = mainPeak.Index + localRange;
+                    if (localEnd > Dots.Count - 1)
+                        localEnd = Dots.Count - 1;
+                    var localDots = Dots.Skip(localStart).Take(localEnd - localStart).ToList();
+                    var localAverage = localDots.Average(d => d.Y);
+                    if (mainPeak.Y > localAverage * mainPeakOverRatio) {
+
+                        var curPeakIndex = PeakDots.IndexOf(mainPeak);
+                        var peakRange = 2;
+                        for (int i = -peakRange; i <= peakRange; i++) {
+                            if (i == 0)
+                                continue;
+                            if(!PeakDots.ContainsIndex(curPeakIndex + i))
+                                continue;
+                            var possibleSidePeak = PeakDots[curPeakIndex + i];
+                            if (sidePeaks.Contains(possibleSidePeak)) {
+                                var foundGroup = SidePeakGroups.Find(r => r.MainPeak == mainPeak);
+                                if (foundGroup != null) {
+                                    foundGroup.SidePeaks.Add(possibleSidePeak);
+                                } else {
+                                    var group = new SidePeakGroup(mainPeak);
+                                    group.SidePeaks.Add(possibleSidePeak);
+                                    SidePeakGroups.Add(group);
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            //main: BPFI  side: RPS/FTF
+            var mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFI));
+            var sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.RPS || f.Name == FtName.FTF));
+            findSidePeakGroupsAction(mp, sp);
+
+            //main: BSF  side: FTF
+            mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BSF));
+            sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.FTF));
+            findSidePeakGroupsAction(mp, sp);
+
+            //main: BPFO or Nothing  side: BPFO
+            mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO) || !d.Features.Any());
+            sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
+            findSidePeakGroupsAction(mp, sp);
+        }
+
         #endregion
 
         #region public methods
@@ -553,7 +669,7 @@ namespace PumpDiagnosticsSystem.Core
 
         #region Obsolete
 
-        private const string _ObsoleteFeatureAlgorithmMessage = @"不再使用该方法计算得出特征值所在点的Y值. 现在的算法为: 计算每个频谱点都可能存在的特征值.";
+        private const string _ObsoleteFeatureAlgorithmMessage = @"不再使用该方法计算得出特征值所在点的Y值. 现在的算法为: 计算每个峰值点都可能存在的特征值.";
 
         /// <summary>
         /// 获取特征值所在点的Y值
@@ -591,7 +707,7 @@ namespace PumpDiagnosticsSystem.Core
         [Obsolete(_ObsoleteFeatureAlgorithmMessage)]
         public int FeatureLine(FtName ftName)
         {
-            var rpsCoeff = FtDict[ftName];
+            var rpsCoeff = FtCoeffDict[ftName];
             var lineLeft = (int)Math.Round(rpsCoeff * RPS / AxisX.Dpl, MidpointRounding.AwayFromZero);
             var lineRight = lineLeft + 1;
 
@@ -603,6 +719,5 @@ namespace PumpDiagnosticsSystem.Core
         }
 
         #endregion
-
     }
 }
