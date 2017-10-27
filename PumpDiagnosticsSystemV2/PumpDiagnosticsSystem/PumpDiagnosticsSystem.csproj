@@ -104,7 +104,7 @@
     <Compile Include="Business\DiagnoseController.cs" />
     <Compile Include="Business\DiagnoseReportController.cs" />
     <Compile Include="Business\MainController.cs" />
-    <Compile Include="Business\MessageProducer.cs" />
+    <Compile Include="Business\SpectrumMessenger.cs" />
     <Compile Include="Core\Parser\EasyParser.cs" />
     <Compile Include="Core\Spectrum\SpectrumAnalyser.cs" />
     <Compile Include="Core\Constructor\LogicConstructor.cs" />

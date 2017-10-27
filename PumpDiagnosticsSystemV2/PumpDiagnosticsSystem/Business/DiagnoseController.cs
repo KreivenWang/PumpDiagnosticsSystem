@@ -206,7 +206,7 @@ namespace PumpDiagnosticsSystem.Business
                 msgs.Add(graph.Type.ToString());
                 msgs.Add(GraphArchive.FromGraph(graph).DataStr);
                 var msg = string.Join("|||", msgs);
-                MessageProducer.Send(msg);
+                SpectrumMessenger.Send(msg);
             }
         }
     }
