@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -46,31 +47,28 @@ namespace PumpDiagnosticsSystem.Business
             }
         }
 
-        public static void StartReceive(Action<string> consumerAction)
+        public static void Receive(Action<string> consumerAction)
         {
-            Task.Factory.StartNew((() =>
-            {
-                using (var connection = _factory.CreateConnection())
-                using (var channel = connection.CreateModel()) {
-                    channel.QueueDeclare(queue: MsgKey,
-                        durable: false,
-                        exclusive: false,
-                        autoDelete: false,
-                        arguments: null);
+            using (var connection = _factory.CreateConnection())
+            using (var channel = connection.CreateModel()) {
+                channel.QueueDeclare(queue: MsgKey,
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
 
-                    var consumer = new EventingBasicConsumer(channel);
-                    consumer.Received += (model, ea) =>
-                    {
-                        var body = ea.Body;
-                        var message = Encoding.UTF8.GetString(body);
-                        consumerAction(message);
-                    };
-                    channel.BasicConsume(queue: MsgKey,
-                        autoAck: true,
-                        consumer: consumer);
-                }
-                Console.ReadLine();
-            }));
+                var consumer = new EventingBasicConsumer(channel);
+                consumer.Received += (model, ea) =>
+                {
+                    var body = ea.Body;
+                    var message = Encoding.UTF8.GetString(body);
+                    Debug.WriteLine($"Received Msg:{message}");
+                    consumerAction(message);
+                };
+                channel.BasicConsume(queue: MsgKey,
+                    autoAck: true,
+                    consumer: consumer);
+            }
         }
     }
 }

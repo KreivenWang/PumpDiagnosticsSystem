@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Owin;
 using Owin;
-using PumpDiagnosticsSystem.Business;
 
 [assembly: OwinStartupAttribute(typeof(PumpDiagnosticsSystem.Web.Startup))]
 namespace PumpDiagnosticsSystem.Web
@@ -17,16 +17,6 @@ namespace PumpDiagnosticsSystem.Web
             //                FileProvider = new PhysicalFileProvider(@"D:\Source\WebApplication1\src\WebApplication1\MyStaticFiles"),
             //                RequestPath = new PathString("/StaticFiles")
             //            });
-
-            //            MainController.Initialze();
-            //            MainController.RunProgramLoop();
-            
         }
-    }
-
-    public static class MsgRepo
-    {
-        public static List<string> GraphMsgs { get; } = new List<string>();
-        public static string GraphMsg { get; set; }
     }
 }
