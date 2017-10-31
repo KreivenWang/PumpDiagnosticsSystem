@@ -69,6 +69,7 @@ namespace PumpDiagnosticsSystem.Business
                     autoAck: true,
                     consumer: consumer);
             }
+            //merge single file test
         }
     }
 }
