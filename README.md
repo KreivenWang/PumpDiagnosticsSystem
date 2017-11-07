@@ -151,3 +151,8 @@ canFindNoiseDots(no)->npass
 pass->e
 npass->e
 ```
+
+```mermaid
+graph LR
+A --> B
+```
