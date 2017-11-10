@@ -100,7 +100,7 @@ namespace PumpDiagnosticsSystem.Datas
                     graph.UpdateData(datas.ToArray());
                     if (graph.Type == GraphType.Spectrum) {
                         var rpm = RuntimeRepo.GetRPM();
-                        specs.Add(new Spectrum(graph.PPGuid, graph.SSGuid, rpm, graph.Data, graph.Pos));
+                        specs.Add(new Spectrum(graph.PPGuid, graph.SSGuid, graph.Number, rpm, graph.Data, graph.Pos));
                     }
                 }
                 RuntimeRepo.SpecAnalyser.UpdateSpecs(RuntimeRepo.RunningPumpGuids, specs);
@@ -156,7 +156,7 @@ namespace PumpDiagnosticsSystem.Datas
                 timeStr = redisClient.GetValue("IntouchUpdateTime");
                 break;
                 case nameof(VibraTransducer):
-                timeStr = redisClient.GetValue("IntouchUpdateTime");
+                timeStr = redisClient.GetValue($"{{{td.Guid.ToFormatedString()}}}_PICKDATE");
                 break;
             }
 

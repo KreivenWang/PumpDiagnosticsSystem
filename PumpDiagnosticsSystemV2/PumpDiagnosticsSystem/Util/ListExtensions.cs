@@ -51,5 +51,16 @@ namespace PumpDiagnosticsSystem.Util
         {
             return listA.Except(listB).ToList().Count == 0;
         }
+
+        /// <summary>
+        /// listA是否是listB的子集
+        /// </summary>
+        /// <param name="ListA"></param>
+        /// <param name="ListB"></param>
+        /// <returns></returns>
+        public static bool IsSubsetOf<T>(this List<T> ListA, List<T> ListB)
+        {
+            return ListA.All(a => ListB.Any(b => b.Equals(a)));
+        }
     }
 }

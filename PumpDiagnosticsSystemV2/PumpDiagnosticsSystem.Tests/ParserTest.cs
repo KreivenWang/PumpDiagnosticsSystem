@@ -36,6 +36,10 @@ namespace PumpDiagnosticsSystem.Tests
             {
                 return base.EvaluateExpression(expression);
             }
+            public new double Calculate(string expression)
+            {
+                return base.Calculate(expression);
+            }
         }
 
         internal class MockInferComboParser : InferComboParser
@@ -248,6 +252,15 @@ namespace PumpDiagnosticsSystem.Tests
             var result= mockParser.Calculate("3*4*5");
 
             Assert.AreEqual(60, result);
+        }
+
+        [TestMethod]
+        public void StringFuncTest()
+        {
+            var mockParser = new MockCriterionParser();
+            var result = mockParser.Calculate("TestStringFunc(\"string\",1)");
+            Debug.WriteLine("calc finished");
+            Assert.AreEqual(7, result);
         }
     }
 }

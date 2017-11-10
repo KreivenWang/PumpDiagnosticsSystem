@@ -12,6 +12,84 @@ namespace PumpDiagnosticsSystem.Core
 {
     public class Spectrum
     {
+        #region enums
+
+        /// <summary>
+        /// 特征值名称枚举
+        /// </summary>
+        [Flags]
+        public enum FtName
+        {
+            RPS = 1,
+            BPFI = 2,
+            BPFO = 4,
+            BSF = 8,
+            FTF = 16,
+            BPF = 32
+        }
+
+        [Flags]
+        public enum SidePeakGroupType
+        {
+            BPFI__RPS_FTF = 1,
+            BSF__FTF = 2,
+            NF__BPFO = 4,
+            BPFO__BPFO = 8,
+            BPF__RPS = 8,
+        }
+
+        /// <summary>
+        /// 频段划分
+        /// </summary>
+        [Flags]
+        public enum FreqRegionType
+        {
+            /// <summary>
+            /// 0 - 40倍RPS
+            /// </summary>
+            Low = 1,
+
+            /// <summary>
+            /// 40倍RPS - 50%FMax
+            /// </summary>
+            Middle = 2,
+
+            /// <summary>
+            /// 50%FMax - FMax
+            /// </summary>
+            High = 4
+        }
+
+        /// <summary>
+        /// 底脚档位划分
+        /// </summary>
+        [Flags]
+        public enum FooterGradeType
+        {
+            /// <summary>
+            /// 不需要分档
+            /// </summary>
+            None = 0,
+            /// <summary>
+            /// 低档底脚
+            /// </summary>
+            Low = 1,
+            /// <summary>
+            /// 中档底脚
+            /// </summary>
+            Middle = 2,
+            /// <summary>
+            /// 高档底脚
+            /// </summary>
+            High = 4,
+            /// <summary>
+            /// 所有档位在一起的判断, 3档加一起 != All, 因为All代表可以跨越3个档位, 而加一起不可以, 所以不要用7(Low+Middle+High)!
+            /// </summary>
+            All = 8
+        }
+
+        #endregion
+
         #region classes
 
         public class Const
@@ -32,18 +110,48 @@ namespace PumpDiagnosticsSystem.Core
             public static double AlarmValue { get; } = 11.42D;
 
             /// <summary>
-            /// 区域分割点列表,需要乘上转速
+            /// 噪音区域分割点列表,需要乘上转速, 目前只用了第一个, 用来判定噪音的最小宽度
             /// </summary>
-            public static List<double> RegionPartitions { get; } = new List<double> {
+            public static List<double> NoiseRegionPartitions { get; } = new List<double> {
                 0D,
                 20D,
                 50D
             };
 
             /// <summary>
+            /// 低频与中频段的界限
+            /// </summary>
+            public static double FreqRegion_LowToMiddle { get; }= 40D;
+
+            /// <summary>
+            /// 中频与高频段的界限(比例)
+            /// </summary>
+            public static double FreqRegion_MiddleToHigh { get; } =0.5D;
+
+
+            #region 底脚相关
+
+            /// <summary>
+            /// 噪声点判定(Y方向) - 底数
+            /// </summary>
+            public static double NoiseAlarmJudge_Base { get; } = 1.6D;
+
+            /// <summary>
+            /// 噪声点判定(Y方向) - 幂 - 下限
+            /// </summary>
+            public static int NoiseJudge_Pow_Min { get; } = 0;
+
+            /// <summary>
+            /// 噪声点判定(Y方向) - 幂 - 上限
+            /// </summary>
+            public static int NoiseJudge_Pow_Max { get; } = 9;
+
+            /// <summary>
             /// 判断为噪声点的报警值百分比(Y方向)
             /// </summary>
-            public static double NoiseAlarmPercent { get; } = 0.01;
+            public static double NoiseAlarmPercent { get; } = 0.01D;
+
+            #endregion
 
             /// <summary>
             /// 判断为噪声的最小宽度百分比(X方向)
@@ -83,19 +191,6 @@ namespace PumpDiagnosticsSystem.Core
                 Index = index;
                 Y = y;
             }
-        }
-
-        /// <summary>
-        /// 特征值名称枚举
-        /// </summary>
-        public enum FtName
-        {
-            RPS,
-            BPFI,
-            BPFO,
-            BSF,
-            FTF,
-            BPF
         }
 
         public class FeatureInfo
@@ -206,13 +301,13 @@ namespace PumpDiagnosticsSystem.Core
         /// <summary>
         /// 底脚噪音区
         /// </summary>
-        public class FooterNoiseRegion
+        public class FreqRegion
         {
             public double BeginFrequence { get; set; }
 
             public double EndFrequence { get; set; }
 
-            public double[] Data { get; set; }
+            public FreqRegionType Type { get; set; }
         }
 
         /// <summary>
@@ -220,14 +315,35 @@ namespace PumpDiagnosticsSystem.Core
         /// </summary>
         public class SidePeakGroup
         {
+            public SidePeakGroupType Type { get; }
+
             public Dot MainPeak { get; set; }
 
             public List<Dot> SidePeaks { get; } = new List<Dot>();
 
-            public SidePeakGroup(Dot mainPeak)
+            public SidePeakGroup(SidePeakGroupType type, Dot mainPeak)
             {
+                Type = type;
                 MainPeak = mainPeak;
             }
+        }
+
+        /// <summary>
+        /// 底脚分档
+        /// </summary>
+        public class FooterGrade
+        {
+            public FooterGradeType Type { get; set; }
+
+            /// <summary>
+            /// 起始幂
+            /// </summary>
+            public int BeginPow { get; set; }
+
+            /// <summary>
+            /// 结束幂
+            /// </summary>
+            public int EndPow { get; set; }
         }
 
         #endregion
@@ -239,12 +355,17 @@ namespace PumpDiagnosticsSystem.Core
         public Guid SSGuid { get; }
 
         /// <summary>
-        /// 每秒钟的转速(Hz) Revelutions Per Second
+        /// 实时数据中的图表编号
+        /// </summary>
+        public int GraphNumber { get; }
+
+        /// <summary>
+        /// 每秒钟的转速(Hz) Revolutions Per Second
         /// </summary>
         public double RPS { get; }
 
         /// <summary>
-        /// 每分钟的转速(Hz) Revelutions Per Minute
+        /// 每分钟的转速(Hz) Revolutions Per Minute
         /// </summary>
         public double RPM { get; }
 
@@ -283,19 +404,14 @@ namespace PumpDiagnosticsSystem.Core
         public double Zero { get; private set; }
 
         /// <summary>
-        /// 底脚噪音区
+        /// 底脚噪音区, 是一个设定的固定范围
         /// </summary>
-        public List<FooterNoiseRegion> NoiseRegions { get; } = new List<FooterNoiseRegion>();
+        public List<FreqRegion> NoiseRegions { get; } = new List<FreqRegion>();
 
         /// <summary>
-        /// 底脚噪音的起始和结束编号列表
+        /// 频段的划分, 是一个设定的固定范围
         /// </summary>
-        public List<Tuple<int,int>> NoiseIndexes { get; private set; } = new List<Tuple<int, int>>();
-
-        /// <summary>
-        /// 边频峰群列表
-        /// </summary>
-        public List<SidePeakGroup> SidePeakGroups { get; } = new List<SidePeakGroup>(); 
+        public List<FreqRegion> FreqRegions { get; } = new List<FreqRegion>();
 
         #endregion
 
@@ -330,10 +446,12 @@ namespace PumpDiagnosticsSystem.Core
 
         #region ctor
 
-        public Spectrum(Guid ppGuid, Guid ssGuid, double rpm, IEnumerable<double> data, TdPos tdPos)
+        public Spectrum(Guid ppGuid, Guid ssGuid, int graphNum, double rpm, IEnumerable<double> data, TdPos tdPos)
         {
+            //Data Initialize
             PPGuid = ppGuid;
             SSGuid = ssGuid;
+            GraphNumber = graphNum;
             RPM = rpm;
             RPS = RPM/60; //每分钟转换成每秒钟的转速
             AxisX.LineCount = data.Count();
@@ -341,12 +459,17 @@ namespace PumpDiagnosticsSystem.Core
             SetFtDict();
             ParseTdPosToPosition(tdPos);
 
+            //Basic Analyse
             SetPeakDots();
             SetPeakDotFeatures();
             SetMainVibraDot();
             SetZero();
             SetNoiseRegions();
-            SetSidePeaksGroups();
+            SetFrequencyRegions();
+
+            //Complex Analyse
+            //FindNoises();
+            //SetSidePeaksGroups();
         }
 
         private void SetDots(IEnumerable<double> data)
@@ -436,6 +559,8 @@ namespace PumpDiagnosticsSystem.Core
         /// </summary>
         private void SetPeakDotFeatures()
         {
+            var notFoundKeys = new List<string>();
+
             foreach (var ftCoeff in FtCoeffDict) {
                 for (int i = 1; i < AxisX.Width; i++) {
                     //转速x特征值系数x倍数
@@ -458,8 +583,8 @@ namespace PumpDiagnosticsSystem.Core
                             if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
                                 lmt = Repo.SpecFtLimits[ftLmtKey];
                             } else {
-                                //再找不到, 添加日志
-                                Log.Error($"找不到特征值 {ftLmtKey} 的报警值, 请检查组件数据库");
+                                //找不到的话, 输出到日志
+                                notFoundKeys.AddSingle(ftLmtKey);
                             }
                         }
 
@@ -472,43 +597,45 @@ namespace PumpDiagnosticsSystem.Core
                 }
             }
 
+            notFoundKeys.ForEach(k => Log.Warn($"找不到特征值 {k} 的报警值, 请检查组件数据库"));
+
             #region //原来按照X的误差值去匹配的算法
 
-//            foreach (var peakDot in PeakDots) {
-//                foreach (var ftCoeff in FtCoeffDict) {
-//                    var possiblePeakIndex = FeatureLine(ftCoeff.Key);
-//                    var ratio = peakDot.X / (ftCoeff.Value * RPS);
-//                    var intRatio = (int)Math.Round(ratio);
-//                    if (intRatio == 0)
-//                        continue;
-//
-//                    //获取报警值
-//                    //先按照有倍数的找
-//                    var ftLmtKey = $"{Pos.CompPos}_{ftCoeff.Key}_{intRatio}";
-//                    var lmt = 999999D;
-//                    if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
-//                        lmt = Repo.SpecFtLimits[ftLmtKey];
-//                    } else {
-//                        //没找到有倍数的,就按默认1倍的找
-//                        ftLmtKey = $"{Pos.CompPos}_{ftCoeff.Key}_1";
-//                        if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
-//                            lmt = Repo.SpecFtLimits[ftLmtKey];
-//                        } else {
-//                            //再找不到, 添加日志
-//                            Log.Error($"找不到特征值 {ftLmtKey} 的报警值, 请检查组件数据库");
-//                        }
-//                    }
-//
-//                    //容差为 +- 0.1Hz
-//                    if (Math.Abs(ratio - intRatio) <= Const.FtJudgeTolerance) {
-//                        peakDot.Features.Add(new FeatureInfo {
-//                            Name = ftCoeff.Key,
-//                            Ratio = intRatio,
-//                            Limit = lmt
-//                        });
-//                    }
-//                }
-//            }
+            //            foreach (var peakDot in PeakDots) {
+            //                foreach (var ftCoeff in FtCoeffDict) {
+            //                    var possiblePeakIndex = FeatureLine(ftCoeff.Key);
+            //                    var ratio = peakDot.X / (ftCoeff.Value * RPS);
+            //                    var intRatio = (int)Math.Round(ratio);
+            //                    if (intRatio == 0)
+            //                        continue;
+            //
+            //                    //获取报警值
+            //                    //先按照有倍数的找
+            //                    var ftLmtKey = $"{Pos.CompPos}_{ftCoeff.Key}_{intRatio}";
+            //                    var lmt = 999999D;
+            //                    if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
+            //                        lmt = Repo.SpecFtLimits[ftLmtKey];
+            //                    } else {
+            //                        //没找到有倍数的,就按默认1倍的找
+            //                        ftLmtKey = $"{Pos.CompPos}_{ftCoeff.Key}_1";
+            //                        if (Repo.SpecFtLimits.ContainsKey(ftLmtKey)) {
+            //                            lmt = Repo.SpecFtLimits[ftLmtKey];
+            //                        } else {
+            //                            //再找不到, 添加日志
+            //                            Log.Error($"找不到特征值 {ftLmtKey} 的报警值, 请检查组件数据库");
+            //                        }
+            //                    }
+            //
+            //                    //容差为 +- 0.1Hz
+            //                    if (Math.Abs(ratio - intRatio) <= Const.FtJudgeTolerance) {
+            //                        peakDot.Features.Add(new FeatureInfo {
+            //                            Name = ftCoeff.Key,
+            //                            Ratio = intRatio,
+            //                            Limit = lmt
+            //                        });
+            //                    }
+            //                }
+            //            }
 
             #endregion
         }
@@ -532,99 +659,200 @@ namespace PumpDiagnosticsSystem.Core
         private void SetNoiseRegions()
         {
             //设置噪音分区
-            var lastIndex = Const.RegionPartitions.Count - 1;
-            for (int i = 0; i < Const.RegionPartitions.Count; i++) {
-                var cur = Const.RegionPartitions[i]*RPS;
+            var lastIndex = Const.NoiseRegionPartitions.Count - 1;
+            for (int i = 0; i < Const.NoiseRegionPartitions.Count; i++) {
+                var cur = Const.NoiseRegionPartitions[i]*RPS;
                 if (i != lastIndex) {
-                    var next = Const.RegionPartitions[i + 1]*RPS;
-                    var region = new FooterNoiseRegion {
+                    var next = Const.NoiseRegionPartitions[i + 1]*RPS;
+                    var region = new FreqRegion {
                         BeginFrequence = cur,
                         EndFrequence = next
                     };
                     NoiseRegions.Add(region);
                 } else {
                     //至FMax
-                    var region = new FooterNoiseRegion {
+                    var region = new FreqRegion {
                         BeginFrequence = cur,
                         EndFrequence = FMax(RPM)/60 //统一使用RPS
                     };
                     NoiseRegions.Add(region);
                 }
             }
+        }
+
+        private void SetFrequencyRegions()
+        {
+            var fMax = FMax(RPM)/60;//统一使用RPS
+
+            var rpsRegions = new List<Tuple<double, double, FreqRegionType>> {
+                new Tuple<double, double, FreqRegionType>(0D, Const.FreqRegion_LowToMiddle*RPS, FreqRegionType.Low),
+                new Tuple<double, double, FreqRegionType>(Const.FreqRegion_LowToMiddle*RPS, Const.FreqRegion_MiddleToHigh*fMax, FreqRegionType.Middle),
+                new Tuple<double, double, FreqRegionType>(Const.FreqRegion_MiddleToHigh*fMax, fMax, FreqRegionType.High)
+            };
+
+            foreach (var rpsRegion in rpsRegions) {
+                FreqRegions.Add(new FreqRegion {
+                    BeginFrequence = rpsRegion.Item1,
+                    EndFrequence = rpsRegion.Item2,
+                    Type = rpsRegion.Item3
+                });
+            }
+        }
+
+        public List<Tuple<int, int>> FindDefaultNoises()
+        {
+            return FindNoises(FooterGradeType.All);
+        }
+
+        /// <summary>
+        /// 根据指定比例, 获取底脚噪音的编号列表(包含起始和结束编号)
+        /// </summary>
+        /// <param name="footerGradeType"></param>
+        /// <param name="autoGrade">自动档的值</param>
+        public List<Tuple<int, int>> FindNoises(FooterGradeType footerGradeType, int? autoGrade = null)
+        {
+            var result = new List<Tuple<int, int>>();
+
+            //自动档最大分档
+            var maxAutoGrade = GradedCriterion.GradeCount;
+
+            //如果自动档是默认值, 即不分自动档, 则按自动档最大值来计算
+            if (autoGrade == null)
+                autoGrade = maxAutoGrade;
+
+            var minPow = Const.NoiseJudge_Pow_Min;
+            var maxPow = Const.NoiseJudge_Pow_Max;
+
+            //幂档范围
+            var powRange = maxPow - minPow;
+
+            //幂档步长 //这里3的意思是分low middle high3大档
+            var powStep = powRange / 3;
+
+            //(当前自动档 除以 自动档最大值) 作为系数, 乘上 具体的幂档范围 就是具体的自动档值
+            //档位从高到低算, 因为范围广的通过了, 才判断范围窄的
+            var coeff = (3D - autoGrade.Value + 1D) /3D; //这里3的意思是档位最大值, **后面应改用appconfig的值
+
+            double beginPow;
+            double endPow;
+            switch (footerGradeType) {
+                case FooterGradeType.None:
+                    return result;
+                case FooterGradeType.Low:
+                    beginPow = powStep*minPow;
+                    endPow = beginPow + coeff*powStep;
+                    break;
+                case FooterGradeType.Middle:
+                    beginPow = powStep*(minPow + 1);
+                    endPow = beginPow + coeff*powStep;
+                    break;
+                case FooterGradeType.High:
+                    beginPow = powStep*(minPow + 2);
+                    endPow = beginPow + coeff*powStep;
+                    break;
+                case FooterGradeType.All:
+                    beginPow = powStep*minPow;
+                    endPow = coeff*powRange;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            var alarmPercentValue = AxisY.AlarmValue*Const.NoiseAlarmPercent;
 
             //寻找噪音段
-            var overDotXs = Dots.Where(d => d.Y > AxisY.AlarmValue*Const.NoiseAlarmPercent)
-                .Select(d => d.Index).ToList();
+            var overDotXs =
+                this.Dots.Where(d => d.Y >= alarmPercentValue* Math.Pow(Const.NoiseAlarmJudge_Base, beginPow) &&
+                                d.Y <= alarmPercentValue* Math.Pow(Const.NoiseAlarmJudge_Base, endPow))
+                    .Select(d => d.Index).ToList();
 
             //获取连续的值 组成的列表
             var continuesPairs = PubFuncs.FindContinues(overDotXs);
 
             // 噪声最小宽度为: 20RPS x 1/3
-            var minWidth = NoiseRegions[0].EndFrequence*Const.NoiseMinWidthPercent;
-            NoiseIndexes = continuesPairs.Where(p => p.Item2*AxisX.Dpl - p.Item1*AxisX.Dpl >= minWidth).ToList();
+            var minWidth = NoiseRegions[0].EndFrequence * Const.NoiseMinWidthPercent;
 
+            //60多好像太宽了 1个都没有, 设个6吧
+            //6个也太宽, 测试用 2个?
+            minWidth = 2;
+
+            result = continuesPairs.FindAll(p => p.Item2 * AxisX.Dpl - p.Item1 * AxisX.Dpl >= minWidth);
+
+            return result;
         }
 
-        private void SetSidePeaksGroups()
+        public List<SidePeakGroup> FindSidePeaksGroups()
         {
-            SidePeakGroups.Clear();
-            
-            var findSidePeakGroupsAction = new Action<List<Dot>, List<Dot>>
-                ((mainPeaks, sidePeaks) =>
-            {
-                
-                foreach (var mainPeak in mainPeaks) {
+            var result = new List<SidePeakGroup>();
 
-                    var localRange = 50;
-                    var mainPeakOverRatio = 1.5D;
-                    //峰值要大于 当地的点(前后50个点)的平均值 的1.5倍
-                    var localStart = mainPeak.Index - localRange;
-                    if (localStart < 0)
-                        localStart = 1;
-                    var localEnd = mainPeak.Index + localRange;
-                    if (localEnd > Dots.Count - 1)
-                        localEnd = Dots.Count - 1;
-                    var localDots = Dots.Skip(localStart).Take(localEnd - localStart).ToList();
-                    var localAverage = localDots.Average(d => d.Y);
-                    if (mainPeak.Y > localAverage * mainPeakOverRatio) {
+            var findSidePeakGroupsAction = new Action<SidePeakGroupType, List<Dot>, List<Dot>>
+                ((spGroupType, mainPeaks, sidePeaks) =>
+                {
 
-                        var curPeakIndex = PeakDots.IndexOf(mainPeak);
-                        var peakRange = 2;
-                        for (int i = -peakRange; i <= peakRange; i++) {
-                            if (i == 0)
-                                continue;
-                            if(!PeakDots.ContainsIndex(curPeakIndex + i))
-                                continue;
-                            var possibleSidePeak = PeakDots[curPeakIndex + i];
-                            if (sidePeaks.Contains(possibleSidePeak)) {
-                                var foundGroup = SidePeakGroups.Find(r => r.MainPeak == mainPeak);
-                                if (foundGroup != null) {
-                                    foundGroup.SidePeaks.Add(possibleSidePeak);
-                                } else {
-                                    var group = new SidePeakGroup(mainPeak);
-                                    group.SidePeaks.Add(possibleSidePeak);
-                                    SidePeakGroups.Add(group);
+                    foreach (var mainPeak in mainPeaks) {
+
+                        var localRange = 50;
+                        var mainPeakOverRatio = 1.5D;
+                        //峰值要大于 当地的点(前后50个点)的平均值 的1.5倍, 首先满足这个条件才算作边频带的主峰
+                        var localStart = mainPeak.Index - localRange;
+                        if (localStart < 0)
+                            localStart = 1;
+                        var localEnd = mainPeak.Index + localRange;
+                        if (localEnd > Dots.Count - 1)
+                            localEnd = Dots.Count - 1;
+                        var localDots = Dots.Skip(localStart).Take(localEnd - localStart).ToList();
+                        var localAverage = localDots.Average(d => d.Y);
+                        if (mainPeak.Y > localAverage*mainPeakOverRatio) {
+
+                            var curPeakIndex = PeakDots.IndexOf(mainPeak);
+                            var peakRange = 2;
+                            for (int i = -peakRange; i <= peakRange; i++) {
+                                if (i == 0)
+                                    continue;
+                                if (!PeakDots.ContainsIndex(curPeakIndex + i))
+                                    continue;
+                                var possibleSidePeak = PeakDots[curPeakIndex + i];
+                                if (sidePeaks.Contains(possibleSidePeak)) {
+                                    var foundGroup = result.Find(r => r.MainPeak == mainPeak);
+                                    if (foundGroup != null) {
+                                        foundGroup.SidePeaks.Add(possibleSidePeak);
+                                    } else {
+                                        var group = new SidePeakGroup(spGroupType, mainPeak);
+                                        group.SidePeaks.Add(possibleSidePeak);
+                                        result.Add(group);
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            });
+                });
 
             //main: BPFI  side: RPS/FTF
             var mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFI));
             var sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.RPS || f.Name == FtName.FTF));
-            findSidePeakGroupsAction(mp, sp);
+            findSidePeakGroupsAction(SidePeakGroupType.BPFI__RPS_FTF, mp, sp);
 
             //main: BSF  side: FTF
             mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BSF));
             sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.FTF));
-            findSidePeakGroupsAction(mp, sp);
+            findSidePeakGroupsAction(SidePeakGroupType.BSF__FTF, mp, sp);
 
-            //main: BPFO or Nothing  side: BPFO
-            mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO) || !d.Features.Any());
+            //main: Nothing(Natural Frequency)  side: BPFO
+            mp = PeakDots.FindAll(d => d.Features.Exists(f => !d.Features.Any()));
             sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
-            findSidePeakGroupsAction(mp, sp);
+            findSidePeakGroupsAction(SidePeakGroupType.NF__BPFO, mp, sp);
+
+            //main: BPFO  side: BPFO
+            mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
+            sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
+            findSidePeakGroupsAction(SidePeakGroupType.BPFO__BPFO, mp, sp);
+
+            //main: BPF  side: RPS
+            mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPF));
+            sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.RPS));
+            findSidePeakGroupsAction(SidePeakGroupType.BPF__RPS, mp, sp);
+
+            return result;
         }
 
         #endregion

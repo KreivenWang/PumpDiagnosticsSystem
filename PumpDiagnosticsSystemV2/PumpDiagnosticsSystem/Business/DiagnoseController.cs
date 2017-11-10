@@ -42,7 +42,7 @@ namespace PumpDiagnosticsSystem.Business
                 DiagnoseRunningPump_Round2(RuntimeRepo.DiagnosingPumpSys);
                 FindMainVibraSpec(RuntimeRepo.DiagnosingPumpSys);
 #if DEBUG
-                RabbitToPandas(RuntimeRepo.DiagnosingPumpSys);
+                RabbitSend(RuntimeRepo.DiagnosingPumpSys);
 #endif
                 Log.Inform();
                 Log.Inform($"********* 机组：{guid} 诊断结束 ********", true);
@@ -195,7 +195,7 @@ namespace PumpDiagnosticsSystem.Business
         }
 
 
-        private void RabbitToPandas(PumpSystem ppSys)
+        private void RabbitSend(PumpSystem ppSys)
         {
             foreach (var graph in RuntimeRepo.RtData.Graphs) {
                 var msgs = new List<string>();

@@ -24,7 +24,7 @@ namespace PumpDiagnosticsSystem.Core
         }
 
         /// <summary>
-        /// 从左到右:水泵非驱动端到电机非驱动端为0,1,2,3
+        /// 从左到右:水泵非驱动端到电机非驱动端为0,1,2,3, 不能用字符串解析来代替，因为判据中的函数只能用double类型
         /// </summary>
         private void ClassifySpecsBs(Guid ppGuid)
         {

@@ -125,7 +125,7 @@ namespace PumpDiagnosticsSystem.Core.Parser
             }
 
             var curIsPassed = true;
-            //判据无误能解析，那就进行分级解析
+            //判据无误 能解析，那就进行分级解析
             GradedCriterion.ForEachValidGradeRange(lvs =>
             {
                 //取一个最小的作为迭代条件

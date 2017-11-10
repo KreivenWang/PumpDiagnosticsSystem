@@ -20,6 +20,10 @@ namespace PumpDiagnosticsSystem.Models.DbEntities
             ga.Time = g.Time;
             ga.Signal = g.Signal;
             ga.Number = g.Number;
+            ga.SSGuid = g.SSGuid;
+            ga.PPGuid = g.PPGuid;
+            ga.Pos = g.Pos;
+            ga.Type = g.Type;
             ga.DataStr = string.Join(",", g.Data);
             return ga;
         }

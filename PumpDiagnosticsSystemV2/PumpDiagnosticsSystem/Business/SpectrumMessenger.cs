@@ -17,10 +17,10 @@ namespace PumpDiagnosticsSystem.Business
         private const string MsgKey = "Spec1";
 
         private static readonly ConnectionFactory _factory = new ConnectionFactory() {
-            HostName = "localhost",
-            UserName = "guest",
-            Password = "guest",
-            Port = 6012
+            HostName = "192.168.1.101",
+            UserName = "admin",
+            Password = "admin",
+//            Port = 6012
         };
 
         public SpectrumMessenger()

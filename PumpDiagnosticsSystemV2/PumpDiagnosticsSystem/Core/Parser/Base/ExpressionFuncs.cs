@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using PumpDiagnosticsSystem.Dbs;
 using PumpDiagnosticsSystem.Util;
@@ -22,11 +23,13 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             DefineFun(nameof(MaxOf4), MaxOf4, true);
             DefineFun(nameof(SpecFeature), SpecFeature, true);
             DefineFun(nameof(CheckSyntony), CheckSyntony, true);
+            DefineFun(nameof(FeatureInNoise), FeatureInNoise, true);
+            DefineFun(nameof(TestStringFunc), TestStringFunc);
         }
 
         private double VibrationAmplitudeMax(double dataRowNo)
         {
-            return PumpSystemFastQuery.GetBulkData((int)dataRowNo).Max();
+            return PumpSystemFastQuery.GetBulkData((int) dataRowNo).Max();
         }
 
         private double SpectrumIntegration(double number, double startFrequence, double endFrequence,
@@ -47,12 +50,12 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
                 //                frequenceInteval = 1.25 * 60;
                 //List<double> datas = GetData(number);
                 //            var datas = PumpSystemFastQuery.GetBulkData((int)number);
-                var graphData = RuntimeRepo.RtData.Graphs.FirstOrDefault(g => g.Number == (int)number)?.Data;
+                var graphData = RuntimeRepo.RtData.Graphs.FirstOrDefault(g => g.Number == (int) number)?.Data;
                 if (graphData != null) {
                     //Log.Inform("当前函数SpectrumIntegration所需BulkDataTable记录的Id为" + number);
 
-                    int startPoint = (int)Math.Round(startFrequence / frequenceInteval) - 1;
-                    int endPoint = (int)Math.Round(endFrequence / frequenceInteval) + 1;
+                    int startPoint = (int) Math.Round(startFrequence/frequenceInteval) - 1;
+                    int endPoint = (int) Math.Round(endFrequence/frequenceInteval) + 1;
 
                     int point = 0;
                     if (startPoint > point)
@@ -77,8 +80,8 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             }
             LogToRtData(nameof(SpectrumIntegration), result);
             if (dotCount > 0) {
-                LogToRtData("Start(Hz)", dotStart * frequenceInteval / 60);
-                LogToRtData("End(Hz)", dotEnd * frequenceInteval / 60);
+                LogToRtData("Start(Hz)", dotStart*frequenceInteval/60);
+                LogToRtData("End(Hz)", dotEnd*frequenceInteval/60);
                 if (dotCount <= 10) {
                     LogToRtData(dotPreview, dotCount);
                 } else {
@@ -103,16 +106,17 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
 
         private double MaxOf4(double v1, double v2, double v3, double v4)
         {
-            return new[] { v1, v2, v3, v4 }.Max();
+            return new[] {v1, v2, v3, v4}.Max();
         }
 
-        private double SpecFeature(double graphNumber, double feature, double speed, double frequenceInteval, double checkPeak)
+        private double SpecFeature(double graphNumber, double feature, double speed, double frequenceInteval,
+            double checkPeak)
         {
             var result = 0D;
             if (graphNumber > 0) {
-                var graphData = RuntimeRepo.RtData.Graphs.FirstOrDefault(g => g.Number == (int)graphNumber)?.Data;
+                var graphData = RuntimeRepo.RtData.Graphs.FirstOrDefault(g => g.Number == (int) graphNumber)?.Data;
                 if (graphData != null) {
-                    var pointLeft = (int)Math.Round(feature * speed / frequenceInteval, MidpointRounding.AwayFromZero);
+                    var pointLeft = (int) Math.Round(feature*speed/frequenceInteval, MidpointRounding.AwayFromZero);
                     var pointRight = pointLeft + 1;
 
                     var gdtLeft = graphData[pointLeft];
@@ -127,7 +131,9 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
                     var gdtMiddle = graphData[higherGdtPoint];
                     var gdtEnd = graphData[dotEnd];
 
-                    result = gdtStart + gdtMiddle + gdtEnd;
+                    //原来用的是3点之和， 现在只用波峰就行了
+                    //result = gdtStart + gdtMiddle + gdtEnd;
+                    result = gdtMiddle;
 
                     //需要检查波峰
                     if (checkPeak != 0D) {
@@ -139,8 +145,8 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
 
                     var dotPreview = $"{gdtStart}, {gdtMiddle}, {gdtEnd}";
                     LogToRtData(nameof(SpecFeature), result);
-                    LogToRtData("Start(Hz)", dotStart * frequenceInteval / 60);
-                    LogToRtData("End(Hz)", dotEnd * frequenceInteval / 60);
+                    LogToRtData("Start(Hz)", dotStart*frequenceInteval/60);
+                    LogToRtData("End(Hz)", dotEnd*frequenceInteval/60);
                     LogToRtData(dotPreview, 3);
 
                 } else {
@@ -195,6 +201,175 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
                 }
             }
             return result;
+        }
+
+//        private double FeatureInNoise(double graphNumber, double noiseRatio, double ftNames, double sidePeakGroup)
+//        {
+//            var result = 0D;
+////            var fts = PubFuncs.ParseEnumFlags<Spectrum.FtName>((int)ftNames);
+
+//            var fts = (Spectrum.FtName) ftNames;
+//            var spGroup = (Spectrum.SidePeakGroupType) sidePeakGroup;
+
+//            var spec = RuntimeRepo.SpecAnalyser.Specs.FirstOrDefault(s => s.GraphNumber == (int) graphNumber);
+//            if (spec == null) {
+//                Log.Warn($"SpectrumIntegration函数：编号为{graphNumber}的图谱未找到");
+//                result = -1;
+//                return result;
+//            }
+
+//            //存在底脚区域
+//            var specNoiseIndexes = spec.FindNoises(noiseRatio);
+//            if (!specNoiseIndexes.Any()) {
+//                LogToRtData("底脚数", 0);
+//                return result;
+//            }
+
+//            for (int i = 1; i <= specNoiseIndexes.Count; i++) {
+//                var noiseBegin = specNoiseIndexes[i].Item1;
+//                var noiseEnd = specNoiseIndexes[i].Item2;
+//                LogToRtData("底脚", i);
+//                LogToRtData("起始点", noiseBegin);
+//                LogToRtData("结束点", noiseEnd);
+
+//                var noiseDots =
+//                    spec.Dots.FindAll(d => d.Index >= noiseBegin && d.Index <= noiseEnd);
+
+//                //区域中存在有特征频率的点
+//                if (noiseDots.Exists(d => d.Features.Exists(f => fts.HasFlag(f.Name)))) {
+//                    result = 1;
+//                }
+
+//                //区域中存在有边频带峰群的点集
+//                //存在至少一个边频带峰群: 它的所有点都在噪音区内
+//                var sidePeakGroups = spec.FindSidePeaksGroups();
+//                if (sidePeakGroups.FindAll(g => g.Type == spGroup)
+//                    .Exists(g => g.SidePeaks.IsSubsetOf(noiseDots) && noiseDots.Contains(g.MainPeak))) {
+//                    result = 1;
+//                }
+//            }
+
+//            return result;
+//        }
+
+        /// <summary>
+        /// 底脚噪声中， 主峰边频带和谐波的判断
+        /// </summary>
+        /// <param name="graphNumber">频谱编号</param>
+        /// <param name="freqRegions">频段划分</param>
+        /// <param name="footerGrades">底脚分档</param>
+        /// <param name="autoFooterGrade">底脚自动档</param>
+        /// <param name="featureCount"></param>
+        /// <param name="sidePeakGroup">主峰边频带</param>
+        /// <param name="nxFeature">谐波</param>
+        /// <returns></returns>
+        private double FeatureInNoise(double graphNumber, double freqRegions, double footerGrades, double autoFooterGrade,
+            double featureCount, double sidePeakGroup, double nxFeature)
+        {
+            var result = 0D;
+
+            var spec = RuntimeRepo.SpecAnalyser.Specs.FirstOrDefault(s => s.GraphNumber == (int) graphNumber);
+            if (spec == null) {
+                Log.Warn($"SpectrumIntegration函数：编号为{graphNumber}的图谱未找到");
+                result = -1;
+                return result;
+            }
+
+            var fqRegionTypes = (Spectrum.FreqRegionType) freqRegions;
+            const Spectrum.FreqRegionType allFqRegionTypes = Spectrum.FreqRegionType.Low |
+                                                             Spectrum.FreqRegionType.Middle |
+                                                             Spectrum.FreqRegionType.High;
+
+            //2. 根据所在频段计算满足条件的点的个数, 再出结果
+            var judgeResult = new Func<List<Spectrum.Dot>, double>(dots =>
+            {
+                //先设置所有频段所有点
+                var availableRegions = spec.FreqRegions;
+                var availableDots = dots;
+
+                //若非所有频段, 则对点进行筛选
+                if (fqRegionTypes != allFqRegionTypes) {
+                    availableRegions = availableRegions.FindAll(r => fqRegionTypes.HasFlag(r.Type));
+                    availableDots =
+                        dots.FindAll(
+                            dot => availableRegions.Exists(r => dot.X > r.BeginFrequence && dot.X < r.EndFrequence));
+                }
+
+                if (availableDots.Any()) {
+                    var count = 0;
+
+                    //不为-1即为要判断的
+                    if (sidePeakGroup > -1D) {
+                        var spGroupTypes = (Spectrum.SidePeakGroupType) sidePeakGroup;
+                        //区域中存在有边频带峰群的点集
+                        //存在至少 count 个边频带峰群: 它的所有点都在噪音区内
+                        var availableSidePeakGroups = spec.FindSidePeaksGroups().FindAll(g => g.Type == spGroupTypes);
+                        count =
+                            availableSidePeakGroups.Count(
+                                g => g.SidePeaks.IsSubsetOf(availableDots) && availableDots.Contains(g.MainPeak));
+                        LogToRtData("满足所有条件的主峰边频带的个数", count);
+                    }
+
+                    if (nxFeature > -1D) {
+                        var ftNames = (Spectrum.FtName) nxFeature;
+                        //区域中存在至少 count 个谐波点
+                        var featureDots = availableDots.FindAll(d => d.Features.Exists(f => f.Name == ftNames));
+                        count = featureDots.Count;
+                        LogToRtData("满足所有条件的谐波的个数", count);
+                    }
+
+                    if (count >= featureCount) {
+                        return 1D;
+                    }
+
+                } else {
+                    LogToRtData($"非所有点都在所需频段{fqRegionTypes}内", 0);
+                }
+                return 0D;
+            });
+
+            //1. 判断底脚
+            var footerGradeTypes = (Spectrum.FooterGradeType)footerGrades;
+            if (footerGradeTypes == 0D) {
+                //做些不需要底脚的判断
+                result = judgeResult(spec.Dots);
+            } else {
+
+                foreach (
+                    var footerGradeType in
+                        PubFuncs.ParseEnumFlags<Spectrum.FooterGradeType>(15).Where(fg => footerGradeTypes.HasFlag(fg))) {
+
+                    //存在底脚区域
+                    var specNoiseIndexes = spec.FindNoises(footerGradeType, (int) autoFooterGrade);
+
+                    if (!specNoiseIndexes.Any()) {
+                        LogToRtData("底脚数", 0);
+                        //return result;
+                        continue;
+                    }
+
+                    //对每个底脚区域
+                    for (int i = 0; i < specNoiseIndexes.Count; i++) {
+
+                        var noiseBegin = specNoiseIndexes[i].Item1;
+                        var noiseEnd = specNoiseIndexes[i].Item2;
+                        LogToRtData("底脚", i + 1);
+                        LogToRtData("起始点", noiseBegin);
+                        LogToRtData("结束点", noiseEnd);
+
+                        var noiseDots = spec.Dots.FindAll(d => d.Index >= noiseBegin && d.Index <= noiseEnd);
+
+                        result = judgeResult(noiseDots);
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private double TestStringFunc(string str1, double val1)
+        {
+            return str1.Length + (int) val1;
         }
     }
 }

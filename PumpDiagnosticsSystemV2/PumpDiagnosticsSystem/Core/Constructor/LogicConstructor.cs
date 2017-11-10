@@ -82,6 +82,8 @@ namespace PumpDiagnosticsSystem.Core.Constructor
                         _VAR_B = row["_VAR_B"].ToString(),
                         _VAR_C = row["_VAR_C"].ToString(),
                         _VAR_D = row["_VAR_D"].ToString(),
+                        _VAR_E = row["_VAR_E"].ToString(),
+                        _VAR_F = row["_VAR_F"].ToString(),
                     };
                     ctToBuildList.Add(cttb);
                 } else {
@@ -123,6 +125,8 @@ namespace PumpDiagnosticsSystem.Core.Constructor
                     ct.Expression = ct.Expression.Replace(nameof(ctToBuild._VAR_B), ctToBuild._VAR_B);
                     ct.Expression = ct.Expression.Replace(nameof(ctToBuild._VAR_C), ctToBuild._VAR_C);
                     ct.Expression = ct.Expression.Replace(nameof(ctToBuild._VAR_D), ctToBuild._VAR_D);
+                    ct.Expression = ct.Expression.Replace(nameof(ctToBuild._VAR_E), ctToBuild._VAR_E);
+                    ct.Expression = ct.Expression.Replace(nameof(ctToBuild._VAR_F), ctToBuild._VAR_F);
 
                     #endregion
 

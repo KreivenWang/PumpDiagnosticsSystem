@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using PumpDiagnosticsSystem.Models;
 
@@ -88,6 +89,20 @@ namespace PumpDiagnosticsSystem.Util
         public static bool ContainsIndex<T>(this IList<T> list, int index)
         {
             return index >= 0 && index < list.Count;
+        }
+
+        /// <summary>
+        /// 转化枚举值为枚举列表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="flags"></param>
+        /// <returns></returns>
+        public static List<T> ParseEnumFlags<T>(int flags)
+        {
+            return typeof(T).GetEnumNames()
+                .Where(n => (flags & (int)Enum.Parse(typeof(T), n)) != 0)
+                .Select(n => (T)Enum.Parse(typeof(T), n))
+                .ToList();
         }
     }
 }

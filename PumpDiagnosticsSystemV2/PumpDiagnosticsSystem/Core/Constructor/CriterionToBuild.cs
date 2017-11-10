@@ -11,5 +11,7 @@ namespace PumpDiagnosticsSystem.Core.Constructor
         public string _VAR_B { get; set; }
         public string _VAR_C { get; set; }
         public string _VAR_D { get; set; }
+        public string _VAR_E { get; set; }
+        public string _VAR_F { get; set; }
     }
 }
