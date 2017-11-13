@@ -35,7 +35,7 @@ namespace PumpDiagnosticsSystem.Dbs
         /// <returns></returns>
         public DataTable LoadTable(string tableName)
         {
-            var connstr = "Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + _path;
+            var connstr = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={_path};Jet OLEDB:Database Password=02154500186";
             var conn = new OleDbConnection(connstr);
             try {
                 var ds = new DataSet();
