@@ -149,8 +149,13 @@ namespace PumpDiagnosticsSystem.Business
                     }
                 }
 
-                if (reportsToSave.Any())
+                if (reportsToSave.Any()) {
+                    foreach (var report in reportsToSave) {
+                        report.RecordTime = DateTime.Now;
+                    }
                     context.FaultItemReports.AddRange(reportsToSave);
+                }
+                    
 
                 context.SaveChanges();
             }
@@ -234,9 +239,12 @@ namespace PumpDiagnosticsSystem.Business
                     }
                 }
 
-                if (reportsToSave.Any())
+                if (reportsToSave.Any()) {
+                    foreach (var report in reportsToSave) {
+                        report.RecordTime = DateTime.Now;
+                    }
                     context.InferComboReports.AddRange(reportsToSave);
-
+                }
                 context.SaveChanges();
             }
         }

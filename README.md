@@ -266,3 +266,30 @@ npass->e
 graph LR
 A --> B
 ```
+
+#诊断报告
+
+## 相同故障的判定策略
+
+以下字段都相同，则认为是同一故障：
+
+- 组件代号（`CompCode`）
+- 显示文字（`DisplayText`）
+- 判据在库中Id（`CriterionBuiltIds`）
+- 严重度（`Severity`）
+
+## 报告中的时间字段
+
+- `FirstTime`：
+  - 故障第一次发生的时间
+- `LatestTime`：
+  - 故障最近一次发生的时间
+- `RecordTime`：
+  - 记录故障的时间
+
+举个例子：
+
+1. 假设任意故障`A`发生，此时获取`A`的通过的判据列表`Cts`
+2. 从`Cts`中找到时间最新的一条判据`Ct`的发生时间`HappenTime` ，分别作为`A`的`FirstTime`和`LatestTime`
+3. 根据**相同故障的判定策略**比对历史故障报告，寻找相同故障`B`
+4. 若`B`存在，则用`A`的`LatestTime`更新`B`的`LatestTime`；若`B`不存在，则`A`作为新的报告加入。

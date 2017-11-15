@@ -18,5 +18,6 @@ namespace PumpDiagnosticsSystem.Models.DbEntities
 
         public string Remark3 { get; set; }
 
+        public DateTime? RecordTime { get; set; }
     }
 }
