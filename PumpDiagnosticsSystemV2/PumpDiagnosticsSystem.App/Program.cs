@@ -17,7 +17,6 @@ namespace PumpDiagnosticsSystem.App
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new Form1());
-            //test for multi remote repository
         }
     }
 }
