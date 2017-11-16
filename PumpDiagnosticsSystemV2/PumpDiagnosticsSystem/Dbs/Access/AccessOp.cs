@@ -1,23 +1,24 @@
 ﻿using System;
 using System.Data;
 using System.Data.OleDb;
+using System.IO;
 
 namespace PumpDiagnosticsSystem.Dbs
 {
     public class AccessOp
     {
-        private readonly string _path;
+        public static readonly string Address = Directory.GetCurrentDirectory() + "\\Assets\\PumpSystemPropertyLib.accdb";
 
-        public AccessOp(string path)
+        public static string ConnStr => $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={Address};Jet OLEDB:Database Password=02154500186";
+
+        public AccessOp()
         {
-            _path = path;
         }
 
         public static DataSet LoadAllToDataSet(string[] tableNames, string path)
         {
             var ds = new DataSet();
-            var connstr = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={path};Persist Security Info=False;";
-            var conn = new OleDbConnection(connstr);
+            var conn = new OleDbConnection(ConnStr);
             conn.Open();
             foreach (var tableName in tableNames) {
                 var query = "Select * from " + tableName;
@@ -35,8 +36,7 @@ namespace PumpDiagnosticsSystem.Dbs
         /// <returns></returns>
         public DataTable LoadTable(string tableName)
         {
-            var connstr = $"Provider=Microsoft.ACE.OLEDB.12.0;Data Source={_path};Jet OLEDB:Database Password=02154500186";
-            var conn = new OleDbConnection(connstr);
+            var conn = new OleDbConnection(ConnStr);
             try {
                 var ds = new DataSet();
                 conn.Open();

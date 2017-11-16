@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using PumpDiagnosticsSystem.Core.Parser.Base;
 using PumpDiagnosticsSystem.Models;
+using PumpDiagnosticsSystem.Util;
 
 namespace PumpDiagnosticsSystem.Core.Parser
 {
@@ -27,7 +26,7 @@ namespace PumpDiagnosticsSystem.Core.Parser
         public static List<string> MatchAVars(string expression)
         {
             const string ConstMatchRegex = @"A\d{1,4}";
-            return RegexMatch(expression, ConstMatchRegex);
+            return PubFuncs.RegexMatch(expression, ConstMatchRegex);
         }
 
         #endregion

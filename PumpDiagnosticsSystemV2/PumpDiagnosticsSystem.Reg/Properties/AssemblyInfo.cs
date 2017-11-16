@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("PumpDiagnosticsSystem.Tests")]
+[assembly: AssemblyTitle("PumpDiagnosticsSystem.Reg")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Astropulsion")]
-[assembly: AssemblyProduct("PumpDiagnosticsSystem.Tests")]
+[assembly: AssemblyProduct("PumpDiagnosticsSystem.Reg")]
 [assembly: AssemblyCopyright("Copyright © Astropulsion 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 如果此项目向 COM 公开，则下列 GUID 用于类型库的 ID
-[assembly: Guid("ceaa0f46-2506-4759-a3e2-5e37107bdf9e")]
+[assembly: Guid("09d60330-bd3f-43e1-b76f-19ffa213ed61")]
 
 // 程序集的版本信息由下列四个值组成: 
 //

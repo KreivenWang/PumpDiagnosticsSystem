@@ -8,8 +8,6 @@ namespace PumpDiagnosticsSystem.Dbs
     /// </summary>
     public static class PumpSysLib
     {
-        private static readonly string Address = Directory.GetCurrentDirectory() + "\\Assets\\PumpSystemPropertyLib.accdb";
-
         private static readonly string[] TableNames_Prop = {
             "CommonProperty",
             "IndirectProperty",
@@ -67,7 +65,7 @@ namespace PumpDiagnosticsSystem.Dbs
 
         static PumpSysLib()
         {
-            _accessOp = new AccessOp(Address);
+            _accessOp = new AccessOp();
         }
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Linq;
 using PumpDiagnosticsSystem.Core.Parser.Base;
 using PumpDiagnosticsSystem.Models;
@@ -40,7 +39,7 @@ namespace PumpDiagnosticsSystem.Core.Parser
         public static List<string> MatchConsts(string expressoin)
         {
             const string ConstMatchRegex = @"#\w{0,50}";
-            return RegexMatch(expressoin, ConstMatchRegex);
+            return PubFuncs.RegexMatch(expressoin, ConstMatchRegex);
         }
 
         /// <summary>
@@ -59,12 +58,12 @@ namespace PumpDiagnosticsSystem.Core.Parser
 
             const string RegexString = IndirectParaMatchRegex + "|" + DirectParaMatchRegex + "|" + ConstMatchRegex;
 
-            return RegexMatch(expressoin, RegexString);
+            return PubFuncs.RegexMatch(expressoin, RegexString);
         }
 
         public static List<string> MatchCriterionRtDataDict(string ctRtDataStr)
         {
-            return RegexMatch(ctRtDataStr, @"[^:, |]+:[^:, |]+");
+            return PubFuncs.RegexMatch(ctRtDataStr, @"[^:, |]+:[^:, |]+");
         }
 
         #endregion

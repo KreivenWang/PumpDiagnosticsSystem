@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 using PumpDiagnosticsSystem.Util;
 
 namespace PumpDiagnosticsSystem.Core.Parser.Base
@@ -15,17 +13,6 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
         /// 表达式中函数的计算结果列表
         /// </summary>
         protected readonly List<FuncParseResult> _funcParsedResults = new List<FuncParseResult>();
-
-        #region static funcs
-
-        protected static List<string> RegexMatch(string expression, string regStr)
-        {
-            var rgx = new Regex(regStr, RegexOptions.Multiline);
-            var matches = rgx.Matches(expression);
-            return (from object match in matches select match.ToString()).ToList();
-        }
-
-        #endregion
 
         protected BaseParser()
         {

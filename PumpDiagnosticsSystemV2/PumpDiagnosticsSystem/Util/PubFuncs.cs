@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
+using System.Text.RegularExpressions;
 using PumpDiagnosticsSystem.Models;
 
 namespace PumpDiagnosticsSystem.Util
@@ -103,6 +104,19 @@ namespace PumpDiagnosticsSystem.Util
                 .Where(n => (flags & (int)Enum.Parse(typeof(T), n)) != 0)
                 .Select(n => (T)Enum.Parse(typeof(T), n))
                 .ToList();
+        }
+
+        /// <summary>
+        /// 根据正则表达式获取匹配项
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <param name="regStr"></param>
+        /// <returns></returns>
+        public static List<string> RegexMatch(string expression, string regStr)
+        {
+            var rgx = new Regex(regStr, RegexOptions.Multiline);
+            var matches = rgx.Matches(expression);
+            return (from object match in matches select match.ToString()).ToList();
         }
     }
 }
