@@ -5,6 +5,7 @@ using System.Linq;
 using PumpDiagnosticsSystem.Dbs;
 using PumpDiagnosticsSystem.Models;
 using PumpDiagnosticsSystem.Models.Enums;
+using PumpDiagnosticsSystem.Util;
 
 namespace PumpDiagnosticsSystem.Datas
 {
@@ -13,6 +14,51 @@ namespace PumpDiagnosticsSystem.Datas
         private static readonly string connStr = ConfigurationManager.ConnectionStrings["PYWSDbContext"].ConnectionString;
 
         private static readonly SqlOp _sqlOp = new SqlOp(connStr, true);
+
+        public static PumpStationInfo GetPumpStationInfo()
+        {
+            var result = new PumpStationInfo();
+
+            //从配置文件中读取获取PSCode
+            result.PSCode = ConfigurationManager.AppSettings["PSCODE"].ToUpper();
+            if (string.IsNullOrEmpty(result.PSCode)) {
+                Log.Error("泵站名称未配置");
+            }
+
+            var sql =
+                $@"SELECT [PSGUID],[PSCODE],[PSNAME]
+  FROM [PUMPSTATION]
+  WHERE PSCODE = '{result.PSCode}'";
+
+            _sqlOp.ExecuteReaderQuery(sql, reader => {
+                while (reader.Read()) {
+                    result.PSGuid = Guid.Parse(reader["PSGUID"].ToString());
+                    result.PSName = reader["PSNAME"].ToString();
+                }
+            });
+            return result;
+        }
+
+        /// <summary>
+        /// 获取机组名称
+        /// </summary>
+        /// <returns></returns>
+        public static string GetPumpSysName(Guid ppguid)
+        {
+            var result = string.Empty;
+
+            var sql =
+                $@"SELECT [PPGUID],[PUMPNAME]
+  FROM [PUMP]
+  WHERE PPGUID = '{ppguid}'";
+
+            _sqlOp.ExecuteReaderQuery(sql, reader => {
+                while (reader.Read()) {
+                    result = reader["PUMPNAME"].ToString();
+                }
+            });
+            return result;
+        }
 
         public static DataDictionary GetPumpBearingInfos(Guid ppGuid)
         {

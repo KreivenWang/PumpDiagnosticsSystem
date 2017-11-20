@@ -8,6 +8,7 @@ using System.Data.SqlClient;
 using System.Data;
 using System.Reflection;
 using PumpDiagnosticsSystem.Datas;
+using PumpDiagnosticsSystem.Util;
 using RedisDemo.Redis;
 
 namespace PumpDiagnosticsSystem.Datas
@@ -16,8 +17,8 @@ namespace PumpDiagnosticsSystem.Datas
     public static class SqlUtil
     {
         private static string strConn = ConfigurationManager.ConnectionStrings["PYWSDbContext"].ConnectionString;
-        private static string psGuid = ConfigurationManager.AppSettings["PSGUID"];
-        private static string psCode = ConfigurationManager.AppSettings["PSCODE"];
+//        private static string psGuid = ConfigurationManager.AppSettings["PSGUID"];
+//        private static string psCode = ConfigurationManager.AppSettings["PSCODE"];
         //加载信号量配置
         private static string queryNovibraPhyDef = @"SELECT  [ID]
                                               ,[PDNVCODE]
@@ -28,7 +29,7 @@ namespace PumpDiagnosticsSystem.Datas
                                               ,[PPGUID]
                                               ,[REMARK]
                                           FROM [PHYDEFNOVIBRA]
-                                          WHERE PSGUID!=PPGUID AND PSGUID='" + psGuid + "';";
+                                          WHERE PSGUID!=PPGUID AND PSGUID='" + Repo.PSInfo.PSGuid + "';";
 
         //加载传感器配置
         private static string querySensor = @"SELECT A.[ID]
@@ -44,7 +45,7 @@ namespace PumpDiagnosticsSystem.Datas
                                           ,[LOCATION]
                                           ,B.CRAFT
                                            FROM [SENSOR] A
-                                           LEFT JOIN [PUMP] B ON A.PPGUID=B.PPGUID WHERE B.PSGUID='" + psGuid + "';";
+                                           LEFT JOIN [PUMP] B ON A.PPGUID=B.PPGUID WHERE B.PSGUID='" + Repo.PSInfo.PSGuid + "';";
         private static string queryGetData = @"SELECT  *
                                       FROM  [dbo].[HISTORYDATA_{1}] 
                                         WHERE PICKDATE='{0}' AND PPGUID!='1C0989D1-999A-41EC-8118-8059B519AB3C' 
@@ -382,7 +383,7 @@ namespace PumpDiagnosticsSystem.Datas
                     if (sensor == null)
                         continue;
 
-                    var url = filePath + @"\" + psCode + @"\" + item.PickDate.Year + @"\" + +item.PickDate.Month + @"\" + +item.PickDate.Day + @"\" + gateway;
+                    var url = filePath + @"\" + Repo.PSInfo.PSCode + @"\" + item.PickDate.Year + @"\" + +item.PickDate.Month + @"\" + +item.PickDate.Day + @"\" + gateway;
                     url = url + @"\" + sensor.NODE + "_" + sensor.CHANNEL + "_" + (item.PickDate.Hour < 10 ? ("0" + item.PickDate.Hour) : (item.PickDate.Hour.ToString())) + "." + (item.PickDate.Minute < 10 ? ("0" + item.PickDate.Minute) : (item.PickDate.Minute.ToString())) + ".00_timewave.txt";
                     if (System.IO.File.Exists(url)) {
 
@@ -446,7 +447,7 @@ namespace PumpDiagnosticsSystem.Datas
             StringBuilder sb = new StringBuilder();
             SqlConnection connection = new SqlConnection(strConn);
 
-            SqlDataAdapter sda = new SqlDataAdapter(String.Format(queryGetData, datetime, psCode), connection);//创建适配器实例对象
+            SqlDataAdapter sda = new SqlDataAdapter(String.Format(queryGetData, datetime, Repo.PSInfo.PSCode), connection);//创建适配器实例对象
 
             DataSet ds = new DataSet();
             sda.Fill(ds);
@@ -495,7 +496,7 @@ namespace PumpDiagnosticsSystem.Datas
                     if (sensor == null)
                         continue;
 
-                    var url = filePath + @"\" + psCode + @"\" + item.PickDate.Year + @"\" + +item.PickDate.Month + @"\" + +item.PickDate.Day + @"\" + gateway;
+                    var url = filePath + @"\" + Repo.PSInfo.PSCode + @"\" + item.PickDate.Year + @"\" + +item.PickDate.Month + @"\" + +item.PickDate.Day + @"\" + gateway;
                     url = url + @"\" + sensor.NODE + "_" + sensor.CHANNEL + "_" + (item.PickDate.Hour < 10 ? ("0" + item.PickDate.Hour) : (item.PickDate.Hour.ToString())) + "." + (item.PickDate.Minute < 10 ? ("0" + item.PickDate.Minute) : (item.PickDate.Minute.ToString())) + ".00_timewave.txt";
                     if (File.Exists(url)) {
 

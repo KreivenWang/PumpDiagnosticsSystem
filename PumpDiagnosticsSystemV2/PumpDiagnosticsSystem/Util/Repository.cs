@@ -22,10 +22,7 @@ namespace PumpDiagnosticsSystem.Util
         /// </summary>
         public const string Separator = ", ";
 
-        /// <summary>
-        /// 从配置中获取的泵站名称
-        /// </summary>
-        public static string PSCode { get; private set; }
+        public static PumpStationInfo PSInfo { get; private set; }
 
         public static Guid[] PumpGuids { get; private set; }
 
@@ -67,10 +64,9 @@ namespace PumpDiagnosticsSystem.Util
 
         public static void Initialize()
         {
-            PSCode = ConfigurationManager.AppSettings["PSCODE"].ToUpper();
-            if (string.IsNullOrEmpty(PSCode)) {
-                Log.Error("泵站名称未配置");
-            }
+            //获取水厂信息
+            PSInfo = DataDetailsOp.GetPumpStationInfo();
+            
 
             //获取信号量配置
             PhyDefNoVibra = SqlUtil.GetPhydefNoVibraList();
@@ -91,10 +87,10 @@ namespace PumpDiagnosticsSystem.Util
 
             try {
                 foreach (DataRow row in PumpSysLib.TableConst.Rows) {
-                    Consts.Add(row["ConstName"].ToString(), double.Parse(row[PSCode].ToString()));
+                    Consts.Add(row["ConstName"].ToString(), double.Parse(row[PSInfo.PSCode].ToString()));
                 }
             } catch (ArgumentException) {
-                Log.Error($"常量表中找不到 泵站名称：{PSCode ?? "未配置"} 对应的列");
+                Log.Error($"常量表中找不到 泵站名称：{PSInfo.PSCode ?? "未配置"} 对应的列");
             }
 
             #endregion

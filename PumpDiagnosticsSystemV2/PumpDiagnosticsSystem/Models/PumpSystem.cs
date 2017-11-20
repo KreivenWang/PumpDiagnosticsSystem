@@ -17,11 +17,17 @@ namespace PumpDiagnosticsSystem.Models
         /// <para>要获取Guid的字符，用Guid的扩展方法<see cref="GuidExt.ToFormatedString"/></para>
         /// </summary>
         public Guid Guid { get; }
+
+        /// <summary>
+        /// 机组的(中文)名称
+        /// </summary>
+        public string Name { get; set; }
+
         public Component Pump { get; }
         public Component Motor { get; }
         public Component Coupler { get; }
         public List<BaseTransducer> Transducers { get; } = new List<BaseTransducer>();
-
+        
         public PumpSystem(Guid ppGuid)
         {
             Guid = ppGuid;

@@ -1,10 +1,15 @@
+using System;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
+using GalaSoft.MvvmLight.Threading;
 using PumpDiagnosticsSystem.Business;
 using PumpDiagnosticsSystem.Security;
+using PumpDiagnosticsSystem.Util;
 
 namespace PumpDiagnosticsSystem.App.ViewModel
 {
@@ -56,6 +61,24 @@ namespace PumpDiagnosticsSystem.App.ViewModel
         }
 
         #endregion
+
+        #region MainText 属性
+        private string _backfield_MainText;
+        public string MainText
+        {
+            get
+            {
+                return _backfield_MainText;
+            }
+            set
+            {
+                _backfield_MainText = value;
+                RaisePropertyChanged(() => MainText);
+            }
+        }
+        #endregion
+
+        
 
         #region Register 命令
 
@@ -109,7 +132,7 @@ namespace PumpDiagnosticsSystem.App.ViewModel
                 MainController.RunProgramLoop();
             });
             IsSysRunning = true;
-            RunText = "运行中...";
+            RunText = "诊断运行中...";
         }
 
         #endregion
@@ -124,22 +147,55 @@ namespace PumpDiagnosticsSystem.App.ViewModel
         }
 
         #endregion
+        
+        public ObservableCollection<PPSysView> PPSystems { get; } = new ObservableCollection<PPSysView>();
 
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
         public MainViewModel()
         {
-            RunText = "启动";
-
-            //Check Registration
-            UpdateRegisterInfo();
+            RunText = "启动诊断";
+            MainText = "机泵故障诊断系统载入中...";
+            PPSystems.Add(new PPSysView() { Name = "载入中", IsRunning = false });
 
             if (IsInDesignMode) {
                 // Code runs in Blend --> create design time data.
+                PPSystems.Clear();
+                PPSystems.Add(new PPSysView() { Name = "13#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
+                PPSystems.Add(new PPSysView() { Name = "14#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
+                PPSystems.Add(new PPSysView() { Name = "15#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
+                PPSystems.Add(new PPSysView() { Name = "16#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
+                PPSystems.Add(new PPSysView() { Name = "17#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
             } else {
-                // Code runs "for real"
+                //Check Registration
+                UpdateRegisterInfo();
+
+                RuntimeRepo.DataUpdated += RuntimeRepo_DataUpdated;
+                Run();
             }
+        }
+
+        private void RuntimeRepo_DataUpdated()
+        {
+            MainText = $@"{Repo.PSInfo.PSName} - 机泵故障诊断系统";
+            
+
+            DispatcherHelper.CheckBeginInvokeOnUI(delegate
+            {
+                PPSystems.Clear();
+                foreach (var ppsys in RuntimeRepo.PumpSysList.OrderBy(p=>p.Name)) {
+                    var time = "数据无更新";
+                    if (RuntimeRepo.PumpSysTimeDict.ContainsKey(ppsys.Guid)) {
+                        time = RuntimeRepo.PumpSysTimeDict[ppsys.Guid]?.ToString("yy-MM-dd HH:mm");
+                    }
+                    PPSystems.Add(new PPSysView {
+                        Name = ppsys.Name,
+                        IsRunning = RuntimeRepo.RunningPumpGuids.Contains(ppsys.Guid),
+                        Time = time
+                    });
+                }
+            });
         }
 
         private void ShowUnregistered()
@@ -157,5 +213,14 @@ namespace PumpDiagnosticsSystem.App.ViewModel
         {
             _registerInfo = RegisterOp.GetRegistInfo(MacAddress.GetByIPConfig());
         }
+    }
+
+    public class PPSysView
+    {
+        public string Name { get; set; }
+
+        public bool IsRunning { get; set; }
+
+        public string Time { get; set; }
     }
 }

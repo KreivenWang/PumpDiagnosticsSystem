@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,8 +29,8 @@ namespace PumpDiagnosticsSystem.App
         {
             InitializeComponent();
             //系统托盘
-            SystemTrayParameter pars = new SystemTrayParameter("logoicon.ico", PubMembers.AppName, "", 0, notifyIcon_MouseDoubleClick);
-            SystemTray.SetSystemTray(pars, GetList());
+            SystemTrayParameter pars = new SystemTrayParameter("runlogoicon.ico", PubMembers.AppName, "", 0, notifyIcon_MouseDoubleClick);
+            App.NotifyIcon = SystemTray.SetSystemTray(pars, GetList());
             //            WinCommon.WinBaseSet(this);
             Closing += MainWindow_Closing;
         }

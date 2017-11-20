@@ -18,6 +18,7 @@ namespace PumpDiagnosticsSystem.Core
         {
             Specs.Clear();
             Specs.AddRange(specs);
+            BrPoses_Specs_Dict.Clear();
             foreach (var ppGuid in runningPPGuids) {
                 ClassifySpecsBs(ppGuid);
             }
@@ -28,8 +29,6 @@ namespace PumpDiagnosticsSystem.Core
         /// </summary>
         private void ClassifySpecsBs(Guid ppGuid)
         {
-            BrPoses_Specs_Dict.Clear();
-            
             var value_BrPoses_Specs = new Spectrum[4][];
             for (int i = 0; i < 4; i++) {
                 value_BrPoses_Specs[i] = new Spectrum[3];

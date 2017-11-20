@@ -104,6 +104,7 @@ namespace PumpDiagnosticsSystem.Datas
                     }
                 }
                 RuntimeRepo.SpecAnalyser.UpdateSpecs(RuntimeRepo.RunningPumpGuids, specs);
+                RuntimeRepo.InformUpdate();
             }
         }
 

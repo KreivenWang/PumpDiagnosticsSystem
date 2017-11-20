@@ -14,6 +14,7 @@ namespace PumpDiagnosticsSystem.Util
     /// </summary>
     public static class RuntimeRepo
     {
+        public static event Action DataUpdated;
         /// <summary>
         /// 当前正在运行的机泵的Guid
         /// </summary>
@@ -44,6 +45,11 @@ namespace PumpDiagnosticsSystem.Util
         public static double GetRPM()
         {
             return RtData.SpData.First(d => d.Key.Contains("peed")).Value;
+        }
+
+        public static void InformUpdate()
+        {
+            DataUpdated?.Invoke();
         }
     }
 }

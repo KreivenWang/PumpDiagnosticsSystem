@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;EXTRA</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -157,6 +157,7 @@
     <Compile Include="Core\Spectrum\Spectrum.cs" />
     <Compile Include="Models\Graph.cs" />
     <Compile Include="Models\DbEntities\MainSpec.cs" />
+    <Compile Include="Models\PumpStationInfo.cs" />
     <Compile Include="Models\PumpSystem.cs" />
     <Compile Include="Models\Enums\TransducerPosition.cs" />
     <Compile Include="Business\MyMongo.cs" />

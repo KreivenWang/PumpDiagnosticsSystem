@@ -112,6 +112,10 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
         private double SpecFeature(double graphNumber, double feature, double speed, double frequenceInteval,
             double checkPeak)
         {
+            if (speed <= 0D) {
+                Log.Error("SpecFeature函数传入的转速为0.");
+                return -1;
+            }
             var result = 0D;
             if (graphNumber > 0) {
                 var graphData = RuntimeRepo.RtData.Graphs.FirstOrDefault(g => g.Number == (int) graphNumber)?.Data;
