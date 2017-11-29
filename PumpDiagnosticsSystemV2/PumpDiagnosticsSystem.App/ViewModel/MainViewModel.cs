@@ -156,7 +156,7 @@ namespace PumpDiagnosticsSystem.App.ViewModel
         public MainViewModel()
         {
             RunText = "启动诊断";
-            MainText = "机泵故障诊断系统载入中...";
+            MainText = "机泵健康诊断系统载入中...";
             PPSystems.Add(new PPSysView() { Name = "载入中", IsRunning = false });
 
             if (IsInDesignMode) {
@@ -167,6 +167,7 @@ namespace PumpDiagnosticsSystem.App.ViewModel
                 PPSystems.Add(new PPSysView() { Name = "15#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
                 PPSystems.Add(new PPSysView() { Name = "16#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
                 PPSystems.Add(new PPSysView() { Name = "17#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
+                IsSysRunning = true;
             } else {
                 //Check Registration
                 UpdateRegisterInfo();
@@ -178,7 +179,7 @@ namespace PumpDiagnosticsSystem.App.ViewModel
 
         private void RuntimeRepo_DataUpdated()
         {
-            MainText = $@"{Repo.PSInfo.PSName} - 机泵故障诊断系统";
+            MainText = $@"{Repo.PSInfo.PSName} - 机泵健康诊断系统";
             
 
             DispatcherHelper.CheckBeginInvokeOnUI(delegate

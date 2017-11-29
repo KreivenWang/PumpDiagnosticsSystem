@@ -69,7 +69,23 @@
                     Content="{Binding RunText}"
                     IsDefault="True"
                     Command="{Binding RunCommand}"
-                    DockPanel.Dock="Bottom" />
+                    DockPanel.Dock="Bottom">
+                <Button.Style>
+                    <Style TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
+                       <Style.Triggers>
+                            <DataTrigger  Binding="{Binding IsSysRunning}"
+                                          Value="True">
+                                <Setter  Property="Foreground"
+                                         Value="Black"></Setter>
+                                <Setter  Property="Opacity"
+                                         Value="0.75"></Setter>
+                                <Setter  Property="FontFamily"
+                                         Value="Microsoft YaHei"></Setter>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
             <ProgressBar Orientation="Horizontal"
                          IsIndeterminate="True"
                          DockPanel.Dock="Bottom"
@@ -85,7 +101,8 @@
                     <TextBlock Style="{DynamicResource MaterialDesignTitleTextBlock}"
                                Text="{Binding MainText}"
                                HorizontalAlignment="Center"
-                               FontFamily="Microsoft YaHei"></TextBlock>
+                               FontFamily="隶书"
+                               FontSize="26"></TextBlock>
                 </Grid>
                 
             </materialDesign:Card>

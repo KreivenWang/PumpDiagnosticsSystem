@@ -7,6 +7,7 @@ using PumpDiagnosticsSystem.Datas;
 using PumpDiagnosticsSystem.Dbs;
 using PumpDiagnosticsSystem.Models;
 using PumpDiagnosticsSystem.Util;
+using Const = PumpDiagnosticsSystem.Util.Repo.SpecConst;
 
 namespace PumpDiagnosticsSystem.Core
 {
@@ -91,78 +92,6 @@ namespace PumpDiagnosticsSystem.Core
         #endregion
 
         #region classes
-
-        public class Const
-        {
-            /// <summary>
-            /// 判断零位的系数
-            /// </summary>
-            public static double ZeroRatio { get; } = 1.5D;
-
-            /// <summary>
-            /// 频率宽度(Hz)
-            /// </summary>
-            public static double FrequencyWidth { get; } = 1000D;
-
-            /// <summary>
-            /// 报警值,暂时没用到,还是用的access的const表中的#MAX_A_VIBRATOIN
-            /// </summary>
-            public static double AlarmValue { get; } = 11.42D;
-
-            /// <summary>
-            /// 噪音区域分割点列表,需要乘上转速, 目前只用了第一个, 用来判定噪音的最小宽度
-            /// </summary>
-            public static List<double> NoiseRegionPartitions { get; } = new List<double> {
-                0D,
-                20D,
-                50D
-            };
-
-            /// <summary>
-            /// 低频与中频段的界限
-            /// </summary>
-            public static double FreqRegion_LowToMiddle { get; }= 40D;
-
-            /// <summary>
-            /// 中频与高频段的界限(比例)
-            /// </summary>
-            public static double FreqRegion_MiddleToHigh { get; } =0.5D;
-
-
-            #region 底脚相关
-
-            /// <summary>
-            /// 噪声点判定(Y方向) - 底数
-            /// </summary>
-            public static double NoiseAlarmJudge_Base { get; } = 1.6D;
-
-            /// <summary>
-            /// 噪声点判定(Y方向) - 幂 - 下限
-            /// </summary>
-            public static int NoiseJudge_Pow_Min { get; } = 0;
-
-            /// <summary>
-            /// 噪声点判定(Y方向) - 幂 - 上限
-            /// </summary>
-            public static int NoiseJudge_Pow_Max { get; } = 9;
-
-            /// <summary>
-            /// 判断为噪声点的报警值百分比(Y方向)
-            /// </summary>
-            public static double NoiseAlarmPercent { get; } = 0.01D;
-
-            #endregion
-
-            /// <summary>
-            /// 判断为噪声的最小宽度百分比(X方向)
-            /// </summary>
-            public static double NoiseMinWidthPercent { get; } = 1D/3D;
-
-            /// <summary>
-            /// 判断为特征点频率的容差
-            /// </summary>
-            public static double FtJudgeTolerance { get; } = 0.000625D;//V1: 0.1找到了4个特征一样的点
-        }
 
         public class Dot
         {
@@ -282,7 +211,7 @@ namespace PumpDiagnosticsSystem.Core
         {
             public class X
             {
-                public double Width { get; set; } = Const.FrequencyWidth;
+                public double Width { get; set; } = Const.BandWidth;
 
                 public int LineCount { get; set; }
 
@@ -774,7 +703,7 @@ namespace PumpDiagnosticsSystem.Core
 
             //60多好像太宽了 1个都没有, 设个6吧
             //6个也太宽, 测试用 2个?
-            minWidth = 2;
+//            minWidth = 2;
 
             result = continuesPairs.FindAll(p => p.Item2 * AxisX.Dpl - p.Item1 * AxisX.Dpl >= minWidth);
 

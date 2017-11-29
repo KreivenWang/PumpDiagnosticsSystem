@@ -95,12 +95,14 @@ namespace PumpDiagnosticsSystem.Util
 
             #endregion
 
+            #region 频谱相关
+
             #region 特征值报警值部分
 
             foreach (DataRow row in PumpSysLib.TableSpectrumAlarm.Rows) {
                 var ftNameStr = row["FtName"].ToString();
                 var lmtExp = row["FtAlarm"].ToString();
-               
+
                 //替换报警值表达式中的常量
                 foreach (var @const in Repo.Consts) {
                     if (lmtExp.Contains(@const.Key))
@@ -115,6 +117,9 @@ namespace PumpDiagnosticsSystem.Util
 
             #endregion
 
+            SpecConst.Init();
+
+            #endregion
         }
 
         /// <summary>
@@ -187,6 +192,125 @@ namespace PumpDiagnosticsSystem.Util
                 {GraphType.Spectrum, "Spec"},
                 {GraphType.TimeWave, "WaveTime"}
             };
+        }
+
+        public static class SpecConst
+        {
+            /// <summary>
+            /// 判断Y方向零位的系数
+            /// </summary>
+            public static double ZeroRatio { get; private set; } = 1.5D;
+
+            /// <summary>
+            /// 频率宽度(Hz)
+            /// </summary>
+            public static double BandWidth { get; private set; } = 1000D;
+
+            /// <summary>
+            /// 报警值,暂时没用到,还是用的access的const表中的#MAX_A_VIBRATOIN
+            /// </summary>
+            public static double AlarmValue { get; private set; } = 11.42D;
+
+            /// <summary>
+            /// 噪音区域分割点列表,需要乘上转速, 目前只用了第一个, 用来判定噪音的最小宽度
+            /// </summary>
+            public static List<double> NoiseRegionPartitions { get; private set; } = new List<double> {
+                0D,
+                20D,
+                50D
+            };
+
+            /// <summary>
+            /// 低频与中频段的界限(转速倍数)
+            /// </summary>
+            public static double FreqRegion_LowToMiddle { get; private set; } = 40D;
+
+            /// <summary>
+            /// 中频与高频段的界限(比例)
+            /// </summary>
+            public static double FreqRegion_MiddleToHigh { get; private set; } = 0.5D;
+
+
+            #region 底脚相关
+
+            /// <summary>
+            /// 噪声点判定(Y方向) - 底数
+            /// </summary>
+            public static double NoiseAlarmJudge_Base { get; private set; } = 1.6D;
+
+            /// <summary>
+            /// 噪声点判定(Y方向) - 幂 - 下限
+            /// </summary>
+            public static int NoiseJudge_Pow_Min { get; private set; } = 0;
+
+            /// <summary>
+            /// 噪声点判定(Y方向) - 幂 - 上限
+            /// </summary>
+            public static int NoiseJudge_Pow_Max { get; private set; } = 9;
+
+            /// <summary>
+            /// 判断为噪声点的报警值百分比(Y方向)
+            /// </summary>
+            public static double NoiseAlarmPercent { get; private set; } = 0.01D;
+
+            #endregion
+
+            /// <summary>
+            /// 判断为噪声的最小宽度百分比(X方向)
+            /// </summary>
+            public static double NoiseMinWidthPercent { get; private set; } = 1D / 3D;
+
+            /// <summary>
+            /// 判断为特征点频率的容差
+            /// </summary>
+            public static double FtJudgeTolerance { get; private set; } = 0.000625D;//V1: 0.1找到了4个特征一样的点 
+
+            public static void Init()
+            {
+                foreach (DataRow row in PumpSysLib.TableSpectrumConst.Rows) {
+                    var name = row["ConstName"].ToString();
+                    if (name == nameof(ZeroRatio))
+                        ZeroRatio = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(BandWidth))
+                        BandWidth = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(AlarmValue))
+                        AlarmValue = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(NoiseRegionPartitions))
+                        NoiseRegionPartitions = row[PSInfo.PSCode].ToString().Split(',')
+                            .Select(double.Parse)
+                            .ToList();
+
+                    else if (name == nameof(FreqRegion_LowToMiddle))
+                        FreqRegion_LowToMiddle = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(FreqRegion_MiddleToHigh))
+                        FreqRegion_MiddleToHigh = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(NoiseAlarmJudge_Base))
+                        NoiseAlarmJudge_Base = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(NoiseJudge_Pow_Min))
+                        NoiseJudge_Pow_Min = int.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(NoiseJudge_Pow_Max))
+                        NoiseJudge_Pow_Max = int.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(NoiseAlarmPercent))
+                        NoiseAlarmPercent = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(NoiseMinWidthPercent))
+                        NoiseMinWidthPercent = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(FtJudgeTolerance))
+                        FtJudgeTolerance = double.Parse(row[PSInfo.PSCode].ToString());
+                    else {
+                        Log.Error($"频谱常量表中找不到 泵站名称：{PSInfo.PSCode ?? "未配置"} 对应的列{name}");
+                    }
+                }
+            }
         }
     }
 }

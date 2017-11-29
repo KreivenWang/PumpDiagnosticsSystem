@@ -27,7 +27,8 @@ namespace PumpDiagnosticsSystem.Dbs
             "Const",
             "PHYDEF",
             "PHYDEF_NOVIBRA",
-            "SpectrumAlarm"
+            "SpectrumAlarm",
+            "SpectrumConst"
         };
 
         private static readonly AccessOp _accessOp;
@@ -59,6 +60,7 @@ namespace PumpDiagnosticsSystem.Dbs
         public static DataTable TablePHYDEF => _accessOp.LoadTable(TableNames_Const[1]);
         public static DataTable TablePHYDEF_NOVIBRA => _accessOp.LoadTable(TableNames_Const[2]);
         public static DataTable TableSpectrumAlarm => _accessOp.LoadTable(TableNames_Const[3]);
+        public static DataTable TableSpectrumConst => _accessOp.LoadTable(TableNames_Const[4]);
 
         #endregion
 

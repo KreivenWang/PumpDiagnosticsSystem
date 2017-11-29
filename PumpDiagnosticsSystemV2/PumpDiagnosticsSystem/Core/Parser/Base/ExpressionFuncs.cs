@@ -308,18 +308,31 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
                         //区域中存在有边频带峰群的点集
                         //存在至少 count 个边频带峰群: 它的所有点都在噪音区内
                         var availableSidePeakGroups = spec.FindSidePeaksGroups().FindAll(g => g.Type == spGroupTypes);
-                        count =
-                            availableSidePeakGroups.Count(
+                        availableSidePeakGroups = availableSidePeakGroups.FindAll(
                                 g => g.SidePeaks.IsSubsetOf(availableDots) && availableDots.Contains(g.MainPeak));
-                        LogToRtData("满足所有条件的主峰边频带的个数", count);
+
+                        foreach (var spg in availableSidePeakGroups) {
+                            LogToRtData($"{spg.Type.ToString()}主峰坐标:[{spg.MainPeak.X},{spg.MainPeak.Y}],编号",spg.MainPeak.Index);
+                            foreach (var sp in spg.SidePeaks) {
+                                LogToRtData($"边频带:[{sp.X},{sp.Y}],编号", sp.Index);
+                            }
+                        }
+
+                        count = availableSidePeakGroups.Count;
                     }
 
                     if (nxFeature > -1D) {
                         var ftNames = (Spectrum.FtName) nxFeature;
                         //区域中存在至少 count 个谐波点
                         var featureDots = availableDots.FindAll(d => d.Features.Exists(f => f.Name == ftNames));
+
+                        foreach (var fdot in featureDots) {
+                            LogToRtData(
+                                $"{ftNames.ToString()}{fdot.Features.First(f => f.Name == ftNames).Ratio.ToString()}X谐波坐标:[{fdot.X},{fdot.Y}],编号",
+                                fdot.Index);
+                        }
+
                         count = featureDots.Count;
-                        LogToRtData("满足所有条件的谐波的个数", count);
                     }
 
                     if (count >= featureCount) {

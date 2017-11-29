@@ -155,9 +155,8 @@ namespace PumpDiagnosticsSystem.Business
             //找到是频谱的第几线
             var line = (double)graph.Data.IndexOf(max);
 
-            var specWidth = double.Parse(ConfigurationManager.AppSettings["SpecWidth"]);
             var lineCount = (double)graph.Data.Count - 1;//去掉第一个0
-            var f = line * (specWidth / lineCount);
+            var f = line * (Repo.SpecConst.BandWidth / lineCount);
 
             double? speed = GetSpeed(ppSys);
 
