@@ -78,7 +78,31 @@ namespace PumpDiagnosticsSystem.App.ViewModel
         }
         #endregion
 
-        
+        #region RunModeText 属性
+        private string _backfield_RunModeText;
+        public string RunModeText
+        {
+            get { return _backfield_RunModeText; }
+            set
+            {
+                _backfield_RunModeText = value;
+                RaisePropertyChanged(() => RunModeText);
+            }
+        }
+        #endregion
+
+
+        #region SendReport 命令
+        private ICommand _cmdSendReport;
+        public ICommand SendReportCommand => _cmdSendReport ?? (_cmdSendReport = new RelayCommand(SendReport));
+
+        private void SendReport()
+        {
+            MainController.ManualBuildUIReport();
+            MessageBox.Show("诊断报告发送成功!", "生成结果", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        #endregion
 
         #region Register 命令
 
@@ -103,7 +127,7 @@ namespace PumpDiagnosticsSystem.App.ViewModel
 
         private void About()
         {
-            MessageBox.Show("copyright 2017 上海航天动力科技工程有限公司", "关于", MessageBoxButton.OK, MessageBoxImage.Information);
+            MessageBox.Show($"{PubMembers.AppName}\r\ncopyright 2015-2017 上海航天动力科技工程有限公司", "关于", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         #endregion
@@ -168,9 +192,11 @@ namespace PumpDiagnosticsSystem.App.ViewModel
                 PPSystems.Add(new PPSysView() { Name = "16#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
                 PPSystems.Add(new PPSysView() { Name = "17#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
                 IsSysRunning = true;
+                RunModeText = "当前为：历史诊断模式";
             } else {
                 //Check Registration
                 UpdateRegisterInfo();
+                RunModeText = Repo.IsHistoryDiagMode ? "当前为：历史诊断模式" : "当前为：实时诊断模式";
 
                 RuntimeRepo.DataUpdated += RuntimeRepo_DataUpdated;
                 Run();

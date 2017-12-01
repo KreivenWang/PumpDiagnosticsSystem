@@ -62,6 +62,16 @@ namespace PumpDiagnosticsSystem.Util
         /// </summary>
         public static Dictionary<string, double> SpecFtLimits { get; } = new Dictionary<string, double>();
 
+        /// <summary>
+        /// 是否为历史诊断模式
+        /// </summary>
+        public static bool IsHistoryDiagMode { get; } = bool.Parse(ConfigurationManager.AppSettings["IsHistoryDiagMode"]);
+
+        /// <summary>
+        /// 每天自动生成报告的时间
+        /// </summary>
+        public static DateTime ReportBuildTime { get; } = DateTime.Parse(ConfigurationManager.AppSettings["ReportBuildTime"]);
+
         public static void Initialize()
         {
             //获取水厂信息

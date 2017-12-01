@@ -4,6 +4,7 @@ using System.Configuration;
 using System.Linq;
 using PumpDiagnosticsSystem.Dbs;
 using PumpDiagnosticsSystem.Models;
+using PumpDiagnosticsSystem.Models.DbEntities;
 using PumpDiagnosticsSystem.Models.Enums;
 using PumpDiagnosticsSystem.Util;
 
@@ -129,6 +130,50 @@ AND [PUMPTYPE].[PPTGUID] = [PUMP].[PPTGUID]";
                 }
             });
             return result;
+        }
+
+        public static void BuildUIReport(PumpSystem ppsys, List<InferComboReport> reports)
+        {
+            var items = (from rpt in reports
+                         select new
+                         {
+                             text = rpt.DisplayText,
+                             advice = rpt.Advice,
+                             firstTime = rpt.FirstTime,
+                             latestTime = rpt.LatestTime,
+                             credit = rpt.Credibility
+                         }).ToList();
+            if (!items.Any())
+                return;
+
+            var saveToDbAction = new Action<string>(tt =>
+            {
+                const string timeFmt = "yy年MM月dd日 HH时mm分";
+                var content = items.Aggregate(string.Empty,
+                    (current, item) =>
+                        current +
+                        $"<span style=\"color:#E53333;font-size:18px;\"><strong>{item.text}</strong></span></br>" +
+                        $"{item.firstTime.Value.ToString(timeFmt)} 至 {item.latestTime.Value.ToString(timeFmt)}时间段内有{item.credit * 100}%的发生概率</br>" +
+                        $"建议{item.advice}</br></br>");
+                var sql = $@"INSERT INTO [PumpVibraDB-UI].[dbo].[DIAGREPORT] (DRTITLE, DRDATE,PSGUID,PPGUID,CREATETIME,DRTYPE,DRCONTENT) 
+  VALUES('{tt}',GETDATE(),'{Repo.PSInfo.PSGuid}','{ppsys.Guid.ToFormatedString()}',GETDATE(),2,'{content}')";
+            _sqlOp.ExecuteNonQuery(sql);
+            });
+
+            string title;
+                
+            if (Repo.IsHistoryDiagMode) {
+                //历史报告为 今天起运行的结果, 结果中的时间为历史时间
+                var timeBegin = reports.Min(r => r.FirstTime);
+                var timeEnd = reports.Max(r => r.LatestTime);
+                title = $"{Repo.PSInfo.PSName}{ppsys.Name}{timeBegin.Value.ToString("yy年MM月dd日")} - {timeEnd.Value.ToString("yy年MM月dd日")}";
+                saveToDbAction(title);
+                Log.Inform($"已构建历史诊断报告:{title}");
+            } else {
+                title = $"{Repo.PSInfo.PSName}{ppsys.Name}{DateTime.Today.ToString("yy年MM月dd日")}";
+                saveToDbAction(title);
+                Log.Inform($"已构建今日诊断报告:{title}");
+            }
         }
     }
 }

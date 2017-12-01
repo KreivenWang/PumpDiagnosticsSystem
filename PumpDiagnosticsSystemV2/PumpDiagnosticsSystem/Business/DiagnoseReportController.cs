@@ -83,11 +83,14 @@ namespace PumpDiagnosticsSystem.Business
                         //设置默认发生次数
                         newRpt.HappenCount = 1;
 
+                        newRpt.RRId = RuntimeRepo.RRId;
+
                        var existRpts =
                             context.FaultItemReports.Where(rptRecord => rptRecord.CompCode == newRpt.CompCode &&
                                                                         rptRecord.DisplayText == newRpt.DisplayText &&
                                                                         rptRecord.CriterionBuiltIds == newRpt.CriterionBuiltIds &&
-                                                                        rptRecord.Severity >= newRpt.Severity).ToArray();
+                                                                        rptRecord.Severity >= newRpt.Severity &&
+                                                                        rptRecord.RRId == newRpt.RRId).ToArray();
 
                         
 
@@ -163,9 +166,56 @@ namespace PumpDiagnosticsSystem.Business
 
         public void BuildInferComboReports(PumpSystem ppSys)
         {
+            //计算Ic可信度
+            var calcCredibilityAction = new Action<PumpSystemContext, InferComboReport>((context, rpt) =>
+            {
+                var dr = context.DiagRecords.FirstOrDefault(d => d.IcId == rpt.LibId &&
+                                                                 d.CompCode == rpt.CompCode &&
+                                                                 d.RRId == rpt.RRId);
+                if (dr == null) {
+                    rpt.Credibility = 0;
+                } else {
+                    rpt.Credibility = Math.Round((double) rpt.HappenCount/(double) dr.DiagCount, 5);
+                }
+            });
+
+
             using (var context = new PumpSystemContext()) {
                 var reportsToSave = new List<InferComboReport>();
                 foreach (var comp in ppSys) {
+
+                    #region 添加FMEA树(Ic)的诊断次数统计
+
+                    var newDrList = new List<DiagRecord>();
+                    foreach (var icItem in comp.InferComboItems) {
+                        var newDr = new DiagRecord {
+                            RRId = RuntimeRepo.RRId,
+                            IcId = icItem.Id,//判据库中的Id
+                            PSGuid = Repo.PSInfo.PSCode,
+                            CompCode = comp.Code,
+                            DiagCount = 1
+                        };
+
+                        var existDr = context.DiagRecords.FirstOrDefault(dr => newDr.RRId == dr.RRId &&
+                                                                               newDr.IcId == dr.IcId &&
+                                                                               newDr.PSGuid == dr.PSGuid &&
+                                                                               newDr.CompCode == dr.CompCode);
+
+                        //LINQ to Entities 不识别该方法 IsSameDiagRecord 因此该方法无法转换为存储表达式
+                        //var existDr = context.DiagRecords.FirstOrDefault(dr => dr.IsSameDiagRecord(newDr));
+
+                        if (existDr == null) {
+                            newDrList.Add(newDr);
+                        } else {
+                            existDr.DiagCount++;
+                        }
+                        
+                    }
+                    context.DiagRecords.AddRange(newDrList);
+                    context.SaveChanges();
+
+                    #endregion
+
                     foreach (var icItem in comp.InferComboItems.Where(ic => ic.IsHappening)) {
 
                         GradedCriterion.ForEachValidGradeRange(gradeRange =>
@@ -207,6 +257,7 @@ namespace PumpDiagnosticsSystem.Business
                             //                        newRpt.Advise = faultItem.Advise;
 
                             newRpt.HappenCount = 1;
+                            calcCredibilityAction(context, newRpt);
 
                             //remark2 作为所用分档
                             newRpt.Remark2 = "Grade:" + string.Join(",", gradeRange);
@@ -215,18 +266,25 @@ namespace PumpDiagnosticsSystem.Business
                             newRpt.Remark3 = "GradeRefer: "+ string.Join(Repo.Separator,
                                 passedGcts.Select(g => $"{g.LibId}:{(int) g.HappeningGrade}"));
 
+                            newRpt.RRId = RuntimeRepo.RRId;
 
-                            var icReports = context.InferComboReports.ToList();
+                            newRpt.Advice = icItem.Advice;
+
+//                            var icReports = context.InferComboReports.ToList();
 
                             //判断是否存在报告，不存在则添加，存在则更新
-                            var existRpts = icReports.Where(rptRecord => rptRecord.LibId == newRpt.LibId &&
-                                                        rptRecord.EventMode == newRpt.EventMode &&
-                                                        rptRecord.Expression == newRpt.Expression &&
-                                                        rptRecord.Remark2 == newRpt.Remark2).ToArray();
+                            var existRpts =
+                                context.InferComboReports.Where(rptRecord => rptRecord.LibId == newRpt.LibId &&
+                                                                             rptRecord.CompCode == newRpt.CompCode &&
+                                                                             rptRecord.EventMode == newRpt.EventMode &&
+                                                                             rptRecord.Expression == newRpt.Expression &&
+                                                                             rptRecord.Remark2 == newRpt.Remark2 &&
+                                                                             rptRecord.RRId == newRpt.RRId).ToArray();
                             if (!existRpts.Any()) {
-                                var intersects = icReports.Select(r => r.LibId).Intersect(icItem.PrevIds).ToList();
+                                var intersects = context.InferComboReports.Select(r => r.LibId).Intersect(icItem.PrevIds).ToList();
                                 if (intersects.Any()) {
                                     newRpt.DisplayText += "(小概率)";
+                                    newRpt.IsLowProbability = true;
                                 }
                                 reportsToSave.Add(newRpt);
                             } else {
@@ -234,6 +292,7 @@ namespace PumpDiagnosticsSystem.Business
                                 var latestRpt = existRpts.First(r => r.LatestTime == latestTime);
                                 latestRpt.LatestTime = newRpt.FirstTime;
                                 latestRpt.HappenCount++;
+                                calcCredibilityAction(context, latestRpt);
                             }
                         });
                     }
@@ -294,7 +353,7 @@ namespace PumpDiagnosticsSystem.Business
                 var existSpec = context.MainSpecs.Where(s =>
                     s.Feature == mspec.Feature &&
                     s.Position == mspec.Position &&
-                    s.PPGuid == mspec.PPGuid).OrderByDescending(s => s.LatestTime).FirstOrDefault();
+                    s.CompCode == mspec.CompCode).OrderByDescending(s => s.LatestTime).FirstOrDefault();
                 if (existSpec != null) {
                     if (mspec.LatestTime.Value.Date > existSpec.LatestTime.Value.Date) {
                         context.MainSpecs.Add(mspec);
@@ -312,7 +371,7 @@ namespace PumpDiagnosticsSystem.Business
                             context.MainSpecs.Where(s =>
                                 s.Feature == mspec.Feature &&
                                 s.Position == mspec.Position &&
-                                s.PPGuid == mspec.PPGuid)
+                                s.CompCode == mspec.CompCode)
                                 .Where(s => s.LatestTime >= timeRangeStart && s.LatestTime <= timeRangeEnd)
                                 .ToList();
                         if (prevSeasonSpecs.Any()) {
@@ -327,6 +386,37 @@ namespace PumpDiagnosticsSystem.Business
                 }
 
                 context.SaveChanges();
+            }
+        }
+
+        public void BuildUIReport()
+        {
+            using (var context = new PumpSystemContext()) {
+
+                foreach (var ppsys in RuntimeRepo.PumpSysList) {
+
+                /*
+                 * 列为诊断结果的条件:
+                 * 
+                 * 当前最后一次的RunRecord中
+                 * 
+                 * Ic的可信度(发生概率) > 10?%
+                 * 
+                 * 发生次数 > 10?次
+                 * 
+                 * 记录的时间为今日起
+                 * 
+                 * 非小概率事件
+                 */
+                    var icRpts = context.InferComboReports.Where(r => r.RRId == RuntimeRepo.RRId &&
+                                                                      r.Credibility > 0.1 &&
+                                                                      r.HappenCount > 10 &&
+                                                                      r.RecordTime >= DateTime.Today &&
+                                                                      !r.IsLowProbability).ToList();
+                    icRpts = icRpts.Where(r => r.CompCode.Contains(ppsys.Guid.ToFormatedString())).ToList();
+
+                    DataDetailsOp.BuildUIReport(ppsys, icRpts);
+                }
             }
         }
     }

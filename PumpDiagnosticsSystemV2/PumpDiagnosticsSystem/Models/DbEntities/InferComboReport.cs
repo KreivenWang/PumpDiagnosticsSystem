@@ -21,8 +21,6 @@ namespace PumpDiagnosticsSystem.Models.DbEntities
 
         public DateTime? LatestTime { get; set; }
 
-        public string CompCode { get; set; }
-
         public string EventMode { get; set; }
 
         public string DisplayText { get; set; }
@@ -34,11 +32,21 @@ namespace PumpDiagnosticsSystem.Models.DbEntities
         /// </summary>
         public string RtDatas { get; set; }
 
-        public string Advise { get; set; }
+        public string Advice { get; set; }
 
         /// <summary>
         /// 发生次数
         /// </summary>
         public int HappenCount { get; set; }
+
+        /// <summary>
+        /// 可信度(发生概率)
+        /// </summary>
+        public double Credibility { get; set; }
+
+        /// <summary>
+        /// 是否为小概率事件
+        /// </summary>
+        public bool IsLowProbability { get; set; }
     }
 }

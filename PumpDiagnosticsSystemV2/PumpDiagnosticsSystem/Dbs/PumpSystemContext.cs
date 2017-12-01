@@ -27,6 +27,9 @@ namespace PumpDiagnosticsSystem.Dbs
         public DbSet<InferComboReport> InferComboReports { get; set; }
 
         public DbSet<MainSpec> MainSpecs { get; set; }
+        public DbSet<RunRecord> RunRecords { get; set; }
+        public DbSet<DiagRecord> DiagRecords { get; set; }
+
 
         public int AddGraph(GraphArchive ga)
         {

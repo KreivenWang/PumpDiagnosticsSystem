@@ -19,6 +19,8 @@ namespace PumpDiagnosticsSystem.Models
 
         public bool IsHappening { get; set; }
 
+        public string Advice { get; set; }
+
         /// <summary>
         /// 表达式中包含的判据libid所对应的判据副本
         /// </summary>

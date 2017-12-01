@@ -16,8 +16,6 @@ namespace PumpDiagnosticsSystem.Models.DbEntities
 
         public DateTime? LatestTime { get; set; }
 
-        public string CompCode { get; set; }
-
         public string DisplayText { get; set; }
 
         public string CriterionBuiltIds { get; set; }

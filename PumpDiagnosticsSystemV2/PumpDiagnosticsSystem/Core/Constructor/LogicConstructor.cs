@@ -164,6 +164,7 @@ namespace PumpDiagnosticsSystem.Core.Constructor
                     Id = int.Parse(row["ID"].ToString()),
                     Expression = row["Expression"].ToString(),
                     FaultResult = row["FaultResult"].ToString(),
+                    Advice = row["Advice"].ToString(),
                 };
                 var prevIdsStr = row["PrevIds"].ToString();
                 if (!string.IsNullOrEmpty(prevIdsStr)) {

@@ -148,6 +148,8 @@
     <Compile Include="Models\DbEntities\GraphArchive.cs" />
     <Compile Include="Models\Constant.cs" />
     <Compile Include="Models\Components\BaseComponent.cs" />
+    <Compile Include="Models\DbEntities\DiagRecord.cs" />
+    <Compile Include="Models\DbEntities\RunRecord.cs" />
     <Compile Include="Models\DiagnoseResult.cs" />
     <Compile Include="Models\Enums\BearingPos.cs" />
     <Compile Include="Models\Enums\GraphType.cs" />

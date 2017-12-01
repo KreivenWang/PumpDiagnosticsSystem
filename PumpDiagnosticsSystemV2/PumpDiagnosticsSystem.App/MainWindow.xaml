@@ -49,6 +49,14 @@
 <!--                              IsCheckable="True"-->
 <!--                              IsChecked="True" />-->
 <!--                </MenuItem>-->
+                <MenuItem Header="工具(_T)">
+                    <MenuItem Header="发送今日诊断报告(_S)"
+                              Command="{Binding SendReportCommand}">
+                        <MenuItem.Icon>
+                            <materialDesign:PackIcon Kind="ContactMail" />
+                        </MenuItem.Icon>
+                    </MenuItem>
+                </MenuItem>
                 <MenuItem Header="帮助(_H)">
                     <MenuItem Header="注册信息(_P)"
                               Command="{Binding RegisterCommand}">
@@ -65,6 +73,7 @@
                     </MenuItem>
                 </MenuItem>
             </Menu>
+            
             <Button Grid.Column="0"
                     Content="{Binding RunText}"
                     IsDefault="True"
@@ -103,6 +112,12 @@
                                HorizontalAlignment="Center"
                                FontFamily="隶书"
                                FontSize="26"></TextBlock>
+                    <TextBlock Grid.Column="0"
+                               Foreground="Gray"
+                               HorizontalAlignment="Right"
+                               VerticalAlignment="Bottom"
+                               Margin="-20 -25"
+                               Text="{Binding RunModeText}"></TextBlock>
                 </Grid>
                 
             </materialDesign:Card>

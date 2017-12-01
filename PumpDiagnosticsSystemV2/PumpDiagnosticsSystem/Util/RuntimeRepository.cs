@@ -15,6 +15,12 @@ namespace PumpDiagnosticsSystem.Util
     public static class RuntimeRepo
     {
         public static event Action DataUpdated;
+
+        /// <summary>
+        /// 当前的运行记录Id
+        /// </summary>
+        public static int RRId { get; set; }
+
         /// <summary>
         /// 当前正在运行的机泵的Guid
         /// </summary>

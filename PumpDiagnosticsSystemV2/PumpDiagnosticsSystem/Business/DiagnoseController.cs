@@ -137,9 +137,7 @@ namespace PumpDiagnosticsSystem.Business
                 }
             }
 
-//            if (RuntimeRepo.InferResultItems.Any()) {
             InferComboHappened?.Invoke(ppSys);
-//            }
         }
 
         public void FindMainVibraSpec(PumpSystem ppSys)
@@ -174,7 +172,7 @@ namespace PumpDiagnosticsSystem.Business
             }
 
             var mainSpec = new MainSpec {
-                PPGuid = ppSys.Guid.ToFormatedString(),
+                CompCode = ppSys.Guid.ToFormatedString(),
                 FirstTime = graph.Time,
                 LatestTime = graph.Time,
                 Feature = feature,

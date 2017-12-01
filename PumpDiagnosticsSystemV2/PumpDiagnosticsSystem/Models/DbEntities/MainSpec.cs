@@ -9,7 +9,6 @@ namespace PumpDiagnosticsSystem.Models.DbEntities
     [Table("MainSpec")]
     public class MainSpec : BaseReport
     {
-        public string PPGuid { get; set; }
         public DateTime? FirstTime { get; set; }
         public DateTime? LatestTime { get; set; }
 
