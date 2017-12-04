@@ -389,8 +389,9 @@ namespace PumpDiagnosticsSystem.Business
             }
         }
 
-        public void BuildUIReport()
+        public int BuildUIReport()
         {
+            var buildCount = 0;
             using (var context = new PumpSystemContext()) {
 
                 foreach (var ppsys in RuntimeRepo.PumpSysList) {
@@ -415,9 +416,10 @@ namespace PumpDiagnosticsSystem.Business
                                                                       !r.IsLowProbability).ToList();
                     icRpts = icRpts.Where(r => r.CompCode.Contains(ppsys.Guid.ToFormatedString())).ToList();
 
-                    DataDetailsOp.BuildUIReport(ppsys, icRpts);
+                    buildCount += DataDetailsOp.BuildUIReport(ppsys, icRpts);
                 }
             }
+            return buildCount;
         }
     }
 }

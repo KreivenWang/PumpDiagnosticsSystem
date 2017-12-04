@@ -132,7 +132,7 @@ AND [PUMPTYPE].[PPTGUID] = [PUMP].[PPTGUID]";
             return result;
         }
 
-        public static void BuildUIReport(PumpSystem ppsys, List<InferComboReport> reports)
+        public static int BuildUIReport(PumpSystem ppsys, List<InferComboReport> reports)
         {
             var items = (from rpt in reports
                          select new
@@ -144,7 +144,7 @@ AND [PUMPTYPE].[PPTGUID] = [PUMP].[PPTGUID]";
                              credit = rpt.Credibility
                          }).ToList();
             if (!items.Any())
-                return;
+                return 0;
 
             var saveToDbAction = new Action<string>(tt =>
             {
@@ -174,6 +174,7 @@ AND [PUMPTYPE].[PPTGUID] = [PUMP].[PPTGUID]";
                 saveToDbAction(title);
                 Log.Inform($"已构建今日诊断报告:{title}");
             }
+            return 1;
         }
     }
 }

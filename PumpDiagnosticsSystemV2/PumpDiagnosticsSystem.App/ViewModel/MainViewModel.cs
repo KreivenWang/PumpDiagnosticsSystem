@@ -98,8 +98,9 @@ namespace PumpDiagnosticsSystem.App.ViewModel
 
         private void SendReport()
         {
-            MainController.ManualBuildUIReport();
-            MessageBox.Show("诊断报告发送成功!", "生成结果", MessageBoxButton.OK, MessageBoxImage.Information);
+            var buildCount = MainController.ManualBuildUIReport();
+            var msg = buildCount == 0 ? "暂无最新故障。" : $"已发送{buildCount}份诊断报告！";
+            MessageBox.Show(msg, "生成结果", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         #endregion

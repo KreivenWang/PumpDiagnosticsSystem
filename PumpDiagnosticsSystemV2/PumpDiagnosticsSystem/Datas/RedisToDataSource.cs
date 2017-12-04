@@ -186,7 +186,9 @@ namespace PumpDiagnosticsSystem.Datas
                 }
 
                 //时间相差大于1秒，则认为时间不同， 数值更新
-                if (time - td.DataUpdateTime > TimeSpan.FromSeconds(1)) { 
+                //此外，考虑历史诊断模式，获取到的time可能比记录的DateUpdateTime要早，所以这里判断取绝对值来判断数据更新
+                if (time - td.DataUpdateTime > TimeSpan.FromSeconds(1) ||
+                    td.DataUpdateTime - time > TimeSpan.FromSeconds(1)) { 
                     td.DataUpdateTime = time;
                     Log.Inform($"{td.NameRemark}[传感器] {td.Code}已更新数据({td.DataUpdateTime})");
                     return true;

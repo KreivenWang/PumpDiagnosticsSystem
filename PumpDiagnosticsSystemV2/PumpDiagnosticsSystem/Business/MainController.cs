@@ -124,9 +124,9 @@ namespace PumpDiagnosticsSystem.Business
             _rptBuildTimer.Start();
         }
 
-        public static void ManualBuildUIReport()
+        public static int ManualBuildUIReport()
         {
-            _rptCtrler.BuildUIReport();
+            return _rptCtrler.BuildUIReport();
         }
 
         private static void CreateRunRecord()
