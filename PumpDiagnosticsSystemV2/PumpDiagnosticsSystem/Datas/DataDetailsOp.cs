@@ -156,7 +156,7 @@ AND [PUMPTYPE].[PPTGUID] = [PUMP].[PPTGUID]";
                         $"{item.firstTime.Value.ToString(timeFmt)} 至 {item.latestTime.Value.ToString(timeFmt)}时间段内有{item.credit * 100}%的发生概率</br>" +
                         $"建议{item.advice}</br></br>");
                 var sql = $@"INSERT INTO [PumpVibraDB-UI].[dbo].[DIAGREPORT] (DRTITLE, DRDATE,PSGUID,PPGUID,CREATETIME,DRTYPE,DRCONTENT) 
-  VALUES('{tt}',GETDATE(),'{Repo.PSInfo.PSGuid}','{ppsys.Guid.ToFormatedString()}',GETDATE(),2,'{content}')";
+  VALUES('{tt}',GETDATE(),'{Repo.PSInfo.PSGuid}','{ppsys.Guid.ToFormatedString()}',GETDATE(),3,'{content}')";
             _sqlOp.ExecuteNonQuery(sql);
             });
 
