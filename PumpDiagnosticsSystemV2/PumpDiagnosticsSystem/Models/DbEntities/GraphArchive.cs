@@ -24,6 +24,8 @@ namespace PumpDiagnosticsSystem.Models.DbEntities
             ga.PPGuid = g.PPGuid;
             ga.Pos = g.Pos;
             ga.Type = g.Type;
+            ga.BandWidth = g.BandWidth;
+            ga.FeatureStr = g.FeatureStr;
             ga.DataStr = string.Join(",", g.Data);
             return ga;
         }

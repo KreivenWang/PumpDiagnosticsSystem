@@ -40,7 +40,7 @@ namespace PumpDiagnosticsSystem.Business
                 //开始诊断
                 DiagnoseRunningPump_Round1(RuntimeRepo.DiagnosingPumpSys);
                 DiagnoseRunningPump_Round2(RuntimeRepo.DiagnosingPumpSys);
-                FindMainVibraSpec(RuntimeRepo.DiagnosingPumpSys);
+                //FindMainVibraSpec(RuntimeRepo.DiagnosingPumpSys);
 #if EXRTA
                 RabbitSend(RuntimeRepo.DiagnosingPumpSys);
 #endif
@@ -140,6 +140,7 @@ namespace PumpDiagnosticsSystem.Business
             InferComboHappened?.Invoke(ppSys);
         }
 
+        [Obsolete("老版本思路，作为参考保留")]
         public void FindMainVibraSpec(PumpSystem ppSys)
         {
             var specGraphs = RuntimeRepo.RtData.Graphs.Where(g => g.Signal.Contains("Spec")).ToArray();
@@ -154,7 +155,8 @@ namespace PumpDiagnosticsSystem.Business
             var line = (double)graph.Data.IndexOf(max);
 
             var lineCount = (double)graph.Data.Count - 1;//去掉第一个0
-            var f = line * (Repo.SpecConst.BandWidth / lineCount);
+            var bandwidth = 1024;
+            var f = line * (bandwidth / lineCount);
 
             double? speed = GetSpeed(ppSys);
 

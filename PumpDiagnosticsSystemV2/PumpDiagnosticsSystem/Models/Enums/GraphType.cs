@@ -5,7 +5,6 @@
     /// </summary>
     public enum GraphType
     {
-        Phase,
         Spectrum,
         TimeWave
     }

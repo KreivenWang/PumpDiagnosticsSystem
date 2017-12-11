@@ -30,6 +30,10 @@ namespace PumpDiagnosticsSystem.Models
         /// </summary>
         public List<int> PeakLines { get; } = new List<int>();
 
+        public double BandWidth { get; set; }
+
+        public string FeatureStr { get; set; }
+
         public void UpdateData(double[] datas)
         {
             Data.Clear();

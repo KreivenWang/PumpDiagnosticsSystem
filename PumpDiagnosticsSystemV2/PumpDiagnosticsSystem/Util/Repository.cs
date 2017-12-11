@@ -198,7 +198,7 @@ namespace PumpDiagnosticsSystem.Util
             /// 图谱的@变量名 至 Redis中的图谱变量名
             /// </summary>
             public static Dictionary<GraphType, string> GraphToRedisGraph => new Dictionary<GraphType, string> {
-                {GraphType.Phase, "Phase"},
+//                {GraphType.Phase, "Phase"},
                 {GraphType.Spectrum, "Spec"},
                 {GraphType.TimeWave, "WaveTime"}
             };
@@ -214,7 +214,7 @@ namespace PumpDiagnosticsSystem.Util
             /// <summary>
             /// 频率宽度(Hz)
             /// </summary>
-            public static double BandWidth { get; private set; } = 1000D;
+            //public static double BandWidth { get; private set; } = 1000D;
 
             /// <summary>
             /// 报警值,暂时没用到,还是用的access的const表中的#MAX_A_VIBRATOIN
@@ -282,8 +282,8 @@ namespace PumpDiagnosticsSystem.Util
                     if (name == nameof(ZeroRatio))
                         ZeroRatio = double.Parse(row[PSInfo.PSCode].ToString());
 
-                    else if (name == nameof(BandWidth))
-                        BandWidth = double.Parse(row[PSInfo.PSCode].ToString());
+//                    else if (name == nameof(BandWidth))
+//                        BandWidth = double.Parse(row[PSInfo.PSCode].ToString());
 
                     else if (name == nameof(AlarmValue))
                         AlarmValue = double.Parse(row[PSInfo.PSCode].ToString());
@@ -314,8 +314,8 @@ namespace PumpDiagnosticsSystem.Util
                     else if (name == nameof(NoiseMinWidthPercent))
                         NoiseMinWidthPercent = double.Parse(row[PSInfo.PSCode].ToString());
 
-                    else if (name == nameof(FtJudgeTolerance))
-                        FtJudgeTolerance = double.Parse(row[PSInfo.PSCode].ToString());
+//                    else if (name == nameof(FtJudgeTolerance))
+//                        FtJudgeTolerance = double.Parse(row[PSInfo.PSCode].ToString());
                     else {
                         Log.Error($"频谱常量表中找不到 泵站名称：{PSInfo.PSCode ?? "未配置"} 对应的列{name}");
                     }

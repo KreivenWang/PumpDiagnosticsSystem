@@ -85,6 +85,7 @@ namespace PumpDiagnosticsSystem.Datas
                         Log.Warn($"从Redis中获取不到 {graph.Signal} 对应的图谱");
                         continue;
                     }
+
                     graph.Time = DateTime.Parse(value.Split('|')[0].Replace(@"""", string.Empty));
                     var datas = value.Split('[')[1]
                         .Replace(@"\", string.Empty)
@@ -99,8 +100,24 @@ namespace PumpDiagnosticsSystem.Datas
 //                        datas.RemoveAt(0);
                     graph.UpdateData(datas.ToArray());
                     if (graph.Type == GraphType.Spectrum) {
+                        var bandWidthInfo = value.Split('|')[1].Split(',')[0].Split(':');
+                        if (bandWidthInfo[0].Replace(" ", string.Empty) == "{FMax") {
+                            graph.BandWidth = double.Parse(bandWidthInfo[1].Replace(" ", string.Empty));
+                        }
+
                         var rpm = RuntimeRepo.GetRPM();
-                        specs.Add(new Spectrum(graph.PPGuid, graph.SSGuid, graph.Number, rpm, graph.Data, graph.Pos));
+                        var spec = new Spectrum(
+                            ppGuid: graph.PPGuid,
+                            ssGuid: graph.SSGuid,
+                            graphNum: graph.Number,
+                            rpm: rpm,
+                            bandWidth: graph.BandWidth,
+                            data: graph.Data,
+                            tdPos: graph.Pos);
+                        specs.Add(spec);
+
+                        //spec的dots 存到 graph
+                        graph.FeatureStr = spec.GetDotsFeatureString();
                     }
                 }
                 RuntimeRepo.SpecAnalyser.UpdateSpecs(RuntimeRepo.RunningPumpGuids, specs);

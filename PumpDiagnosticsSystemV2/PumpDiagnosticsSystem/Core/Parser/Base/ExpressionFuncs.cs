@@ -24,6 +24,7 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             DefineFun(nameof(SpecFeature), SpecFeature, true);
             DefineFun(nameof(CheckSyntony), CheckSyntony, true);
             DefineFun(nameof(FeatureInNoise), FeatureInNoise, true);
+            DefineFun(nameof(GetDpl), GetDpl, true);
             DefineFun(nameof(TestStringFunc), TestStringFunc);
         }
 
@@ -382,6 +383,16 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             }
 
             return result;
+        }
+
+        private double GetDpl(double graphNumber)
+        {
+            var spec = RuntimeRepo.SpecAnalyser.Specs.FirstOrDefault(s => s.GraphNumber == (int)graphNumber);
+            if (spec == null) {
+                Log.Warn($"SpectrumIntegration函数：编号为{graphNumber}的图谱未找到");
+                return -1;
+            }
+            return spec.AxisX.Dpl;
         }
 
         private double TestStringFunc(string str1, double val1)

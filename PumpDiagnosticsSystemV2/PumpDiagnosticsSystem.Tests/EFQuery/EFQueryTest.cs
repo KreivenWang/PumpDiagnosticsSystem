@@ -27,7 +27,7 @@ namespace PumpDiagnosticsSystem.Tests
                 var a = persons3.Expression; //1ms
                 var b = persons3.Count(); //<100ms
                 var c = persons3.ToList(); //<100ms
-                Assert.IsFalse(persons1.Count == persons2.Count);
+                Assert.IsTrue(persons1.Count == persons2.Count);
                 Assert.IsTrue(persons2.Count == persons3.Count());
             }
         }

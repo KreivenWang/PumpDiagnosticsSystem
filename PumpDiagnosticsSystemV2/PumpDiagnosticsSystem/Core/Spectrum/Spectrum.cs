@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Text;
 using PumpDiagnosticsSystem.Core.Parser;
 using PumpDiagnosticsSystem.Datas;
 using PumpDiagnosticsSystem.Dbs;
@@ -211,14 +212,14 @@ namespace PumpDiagnosticsSystem.Core
         {
             public class X
             {
-                public double Width { get; set; } = Const.BandWidth;
+                public double Width { get; set; }
 
                 public int LineCount { get; set; }
 
                 /// <summary>
                 /// 频谱分辨率
                 /// </summary>
-                public double Dpl => Width/(LineCount - (LineCount%10)); //例: 如果是801那就设置为800, 如果是800的话还是800
+                public double Dpl => Width/LineCount;
             }
 
             public class Y
@@ -375,7 +376,7 @@ namespace PumpDiagnosticsSystem.Core
 
         #region ctor
 
-        public Spectrum(Guid ppGuid, Guid ssGuid, int graphNum, double rpm, IEnumerable<double> data, TdPos tdPos)
+        public Spectrum(Guid ppGuid, Guid ssGuid, int graphNum, double rpm, double bandWidth, IEnumerable<double> data, TdPos tdPos)
         {
             //Data Initialize
             PPGuid = ppGuid;
@@ -384,6 +385,7 @@ namespace PumpDiagnosticsSystem.Core
             RPM = rpm;
             RPS = RPM/60; //每分钟转换成每秒钟的转速
             AxisX.LineCount = data.Count();
+            AxisX.Width = bandWidth;
             SetDots(data);
             SetFtDict();
             ParseTdPosToPosition(tdPos);
@@ -820,6 +822,27 @@ namespace PumpDiagnosticsSystem.Core
             var matchDot = Dots.FirstOrDefault(d => d.Features.Exists(f=>f.IsSameFeature(ft)) && PeakDots.Contains(d));
             if (matchDot == null) return false;
             return matchDot.Y > ft.Limit;
+        }
+
+        public string GetDotsFeatureString()
+        {
+            var sb = new StringBuilder();
+            foreach (var dot in Dots) {
+                var fsb = new StringBuilder();
+                foreach (var feature in dot.Features) {
+                    fsb.Append($"{(int) feature.Name}-{feature.Ratio}");
+                    if (feature != dot.Features.Last())
+                        fsb.Append("|");
+                }
+                if (string.IsNullOrEmpty(fsb.ToString())) {
+                    fsb.Append("0");
+                }
+                sb.Append(fsb);
+
+                if (dot != Dots.Last())
+                    sb.Append(",");
+            }
+            return sb.ToString();
         }
 
         #endregion

@@ -1,14 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PumpDiagnosticsSystem.Business;
+using PumpDiagnosticsSystem.Core.Constructor;
 using PumpDiagnosticsSystem.Core.Parser;
 using PumpDiagnosticsSystem.Core.Parser.Base;
 using PumpDiagnosticsSystem.Datas;
+using PumpDiagnosticsSystem.Dbs;
 using PumpDiagnosticsSystem.Models;
 using PumpDiagnosticsSystem.Util;
 
@@ -48,6 +51,36 @@ namespace PumpDiagnosticsSystem.Tests
             {
                 return base.EvaluateExpression(expression);
             }
+        }
+
+        /// <summary>
+        /// 读取故障库
+        /// </summary>
+        [TestMethod]
+        public void LoadFaultLibTest()
+        {
+            var op = new AccessOp();
+            var dt = op.LoadTable("Const");
+            var hasConsts = dt.Rows.Cast<DataRow>().Any();
+            Assert.IsTrue(hasConsts);
+        }
+
+        /// <summary>
+        /// 生成判据
+        /// </summary>
+        public void BuildCriteria()
+        {
+            LogicConstructor.ConstructRepo();
+            Assert.AreNotEqual(0, Repo.Criteria);
+        }
+
+        /// <summary>
+        /// 生成FMEA
+        /// </summary>
+        public void BuildFMEA()
+        {
+            Assert.AreNotEqual(0, Repo.FaultItems);
+            Assert.AreNotEqual(0, Repo.InferCombos);
         }
 
         [TestMethod]
@@ -124,6 +157,9 @@ namespace PumpDiagnosticsSystem.Tests
             Assert.IsTrue(mkParser.EvaluateExpression("min(1,2) == 1"));
         }
 
+        /// <summary>
+        /// 解析判据
+        /// </summary>
         [TestMethod]
         public void ParseCriterionTest()
         {
@@ -154,6 +190,9 @@ namespace PumpDiagnosticsSystem.Tests
             Assert.IsTrue(a);
         }
 
+        /// <summary>
+        /// 解析FMEA
+        /// </summary>
         [TestMethod]
         public void ParseInferComboTest()
         {
