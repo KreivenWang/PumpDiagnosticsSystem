@@ -41,7 +41,7 @@ namespace PumpDiagnosticsSystem.Business
                 DiagnoseRunningPump_Round1(RuntimeRepo.DiagnosingPumpSys);
                 DiagnoseRunningPump_Round2(RuntimeRepo.DiagnosingPumpSys);
                 //FindMainVibraSpec(RuntimeRepo.DiagnosingPumpSys);
-#if EXRTA
+#if EXTRA
                 RabbitSend(RuntimeRepo.DiagnosingPumpSys);
 #endif
                 Log.Inform();
@@ -52,7 +52,7 @@ namespace PumpDiagnosticsSystem.Business
 
         public void DiagnoseRunningPump_Round1(PumpSystem ppSys)
         {
-#if EXRTA
+#if EXTRA
             //显示信号量与属性关联的结果， 结果通过robo3T可视化工具查看表格
             MyMongo.BuildPropsPreview(ppSys);
 #endif

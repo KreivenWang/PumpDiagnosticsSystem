@@ -26,7 +26,7 @@ namespace PumpDiagnosticsSystem.Models
         {
         }
 
-        public void BindSignal()
+        public virtual void BindSignal()
         {
             var prop = Properties.Find(p => p.Variable == Repo.Map.CompDfVar[Type]);
             if (prop != null)

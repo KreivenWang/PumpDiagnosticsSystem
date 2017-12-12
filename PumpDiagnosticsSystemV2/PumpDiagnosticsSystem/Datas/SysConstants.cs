@@ -48,6 +48,11 @@ namespace PumpDiagnosticsSystem.Datas
             public const string Band4 = "Band4";
 
             public const string Speed = "Speed";
+
+            public const string V1Phase = "V1Phase";
+
+            public const string V2Phase = "V2Phase";
+
         }
 
 

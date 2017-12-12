@@ -49,6 +49,7 @@ namespace PumpDiagnosticsSystem.Models
             foreach (var vibrasensor in vibrasensors) {
                 var td = new VibraTransducer(vibrasensor.SSGUID) {
                     Signal = vibrasensor.ITEMCODE,
+                    PhaseSignal = VibraTransducer.ConvertSignalToPhaseSignal(vibrasensor.ITEMCODE),
                     NameRemark = vibrasensor.SSNAME,
                     Position = PubFuncs.FindTdPosFromSignal(vibrasensor.ITEMCODE)
                 };

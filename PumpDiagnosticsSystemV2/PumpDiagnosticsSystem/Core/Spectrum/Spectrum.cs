@@ -37,7 +37,7 @@ namespace PumpDiagnosticsSystem.Core
             BSF__FTF = 2,
             NF__BPFO = 4,
             BPFO__BPFO = 8,
-            BPF__RPS = 8,
+            BPF__RPS = 16,
         }
 
         /// <summary>
@@ -719,21 +719,21 @@ namespace PumpDiagnosticsSystem.Core
             var findSidePeakGroupsAction = new Action<SidePeakGroupType, List<Dot>, List<Dot>>
                 ((spGroupType, mainPeaks, sidePeaks) =>
                 {
-
+                    mainPeaks = FilteIncisivePeaks(mainPeaks);
+                    sidePeaks = FilteIncisivePeaks(sidePeaks);
                     foreach (var mainPeak in mainPeaks) {
 
-                        var localRange = 50;
-                        var mainPeakOverRatio = 1.5D;
-                        //峰值要大于 当地的点(前后50个点)的平均值 的1.5倍, 首先满足这个条件才算作边频带的主峰
-                        var localStart = mainPeak.Index - localRange;
+                        //峰值要大于 当地的峰值(前后50个峰值)的平均值 的1.5倍, 首先满足这个条件才算作边频带的主峰
+                        var mpIndex = PeakDots.IndexOf(mainPeak);
+                        var localStart = mpIndex - Const.SPG_LocalRange;
                         if (localStart < 0)
                             localStart = 1;
-                        var localEnd = mainPeak.Index + localRange;
-                        if (localEnd > Dots.Count - 1)
-                            localEnd = Dots.Count - 1;
-                        var localDots = Dots.Skip(localStart).Take(localEnd - localStart).ToList();
-                        var localAverage = localDots.Average(d => d.Y);
-                        if (mainPeak.Y > localAverage*mainPeakOverRatio) {
+                        var localEnd = mpIndex + Const.SPG_LocalRange;
+                        if (localEnd > PeakDots.Count - 1)
+                            localEnd = PeakDots.Count - 1;
+                        var localPeaks = PeakDots.Skip(localStart).Take(localEnd - localStart).ToList();
+                        var localAverage = localPeaks.Average(d => d.Y);
+                        if (mainPeak.Y > localAverage* Const.SPG_PeakOverRatio) {
 
                             var curPeakIndex = PeakDots.IndexOf(mainPeak);
                             var peakRange = 2;
@@ -759,32 +759,62 @@ namespace PumpDiagnosticsSystem.Core
                 });
 
             //main: BPFI  side: RPS/FTF
-            var mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFI));
-            var sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.RPS || f.Name == FtName.FTF));
-            findSidePeakGroupsAction(SidePeakGroupType.BPFI__RPS_FTF, mp, sp);
+            var mps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFI));
+            var sps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.RPS || f.Name == FtName.FTF));
+            findSidePeakGroupsAction(SidePeakGroupType.BPFI__RPS_FTF, mps, sps);
 
             //main: BSF  side: FTF
-            mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BSF));
-            sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.FTF));
-            findSidePeakGroupsAction(SidePeakGroupType.BSF__FTF, mp, sp);
+            mps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BSF));
+            sps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.FTF));
+            findSidePeakGroupsAction(SidePeakGroupType.BSF__FTF, mps, sps);
 
             //main: Nothing(Natural Frequency)  side: BPFO
-            mp = PeakDots.FindAll(d => d.Features.Exists(f => !d.Features.Any()));
-            sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
-            findSidePeakGroupsAction(SidePeakGroupType.NF__BPFO, mp, sp);
+            mps = PeakDots.FindAll(d => d.Features.Exists(f => !d.Features.Any()));
+            sps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
+            findSidePeakGroupsAction(SidePeakGroupType.NF__BPFO, mps, sps);
 
             //main: BPFO  side: BPFO
-            mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
-            sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
-            findSidePeakGroupsAction(SidePeakGroupType.BPFO__BPFO, mp, sp);
+            mps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
+            sps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPFO));
+            findSidePeakGroupsAction(SidePeakGroupType.BPFO__BPFO, mps, sps);
 
             //main: BPF  side: RPS
-            mp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPF));
-            sp = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.RPS));
-            findSidePeakGroupsAction(SidePeakGroupType.BPF__RPS, mp, sp);
+            mps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.BPF));
+            sps = PeakDots.FindAll(d => d.Features.Exists(f => f.Name == FtName.RPS));
+            findSidePeakGroupsAction(SidePeakGroupType.BPF__RPS, mps, sps);
 
             return result;
         }
+
+        /// <summary>
+        /// 从原始峰值列表中过滤出尖锐的峰值
+        /// </summary>
+        /// <param name="originDots"></param>
+        /// <returns></returns>
+        private List<Dot> FilteIncisivePeaks(List<Dot> originDots)
+        {
+            var r = new List<Dot>();
+            var minIndex = 0;
+            var maxIndex = Dots.Count - 1;
+            foreach (var dot in originDots) {
+                var prevId1 = dot.Index - 1;
+                var prevId2 = dot.Index - 2;
+                var nextId1 = dot.Index + 1;
+                var nextId2 = dot.Index + 2;
+                prevId1 = prevId1 >= minIndex ? prevId1 : minIndex;
+                prevId2 = prevId2 >= minIndex ? prevId2 : minIndex;
+                nextId1 = nextId1 <= maxIndex ? nextId1 : maxIndex;
+                nextId2 = nextId2 <= maxIndex ? nextId2 : maxIndex;
+                var prevDots = new[] { prevId1, prevId2 }.Select(id => Dots[id]).ToList();
+                var nextDots = new[] { nextId1, nextId2 }.Select(id => Dots[id]).ToList();
+                var isIncisive = prevDots.Exists(d => dot.Y / d.Y > 1 + Const.SPG_IncisiveRatio) &&
+                                 nextDots.Exists(d => dot.Y / d.Y > 1 + Const.SPG_IncisiveRatio);
+                if (isIncisive) {
+                    r.Add(dot);
+                }
+            }
+            return r;
+        } 
 
         #endregion
 

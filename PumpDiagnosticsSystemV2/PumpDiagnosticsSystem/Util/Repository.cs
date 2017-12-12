@@ -275,6 +275,12 @@ namespace PumpDiagnosticsSystem.Util
             /// </summary>
             public static double FtJudgeTolerance { get; private set; } = 0.000625D;//V1: 0.1找到了4个特征一样的点 
 
+            public static int SPG_LocalRange { get; private set; } = 20;
+
+            public static double SPG_PeakOverRatio { get; private set; } = 1.5D;
+
+            public static double SPG_IncisiveRatio { get; private set; } = 0.3D;
+
             public static void Init()
             {
                 foreach (DataRow row in PumpSysLib.TableSpectrumConst.Rows) {
@@ -314,8 +320,18 @@ namespace PumpDiagnosticsSystem.Util
                     else if (name == nameof(NoiseMinWidthPercent))
                         NoiseMinWidthPercent = double.Parse(row[PSInfo.PSCode].ToString());
 
-//                    else if (name == nameof(FtJudgeTolerance))
-//                        FtJudgeTolerance = double.Parse(row[PSInfo.PSCode].ToString());
+                    //                    else if (name == nameof(FtJudgeTolerance))
+                    //                        FtJudgeTolerance = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(SPG_LocalRange))
+                        SPG_LocalRange = int.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(SPG_PeakOverRatio))
+                        SPG_PeakOverRatio = double.Parse(row[PSInfo.PSCode].ToString());
+
+                    else if (name == nameof(SPG_IncisiveRatio))
+                        SPG_IncisiveRatio = double.Parse(row[PSInfo.PSCode].ToString());
+
                     else {
                         Log.Error($"频谱常量表中找不到 泵站名称：{PSInfo.PSCode ?? "未配置"} 对应的列{name}");
                     }

@@ -38,15 +38,19 @@ namespace PumpDiagnosticsSystem.Datas
 
             foreach (var ppGuid in RuntimeRepo.RunningPumpGuids) {
 
-                foreach (var phy in SysConstants.SENSORSETTING.Values) {
+                foreach (var phy in SysConstants.SENSORSETTING.Values) { //add to SENSORSETTING
                     var vibraSignal = $"${phy}_{ppGuid}";
+                    var phaseSignal = VibraTransducer.ConvertSignalToPhaseSignal(vibraSignal);
                     SpData.Add(vibraSignal, default(double));
+                    SpData.Add(phaseSignal, default(double));
                     var sensor = Repo.SensorList.FirstOrDefault(p =>
                         SysConstants.SENSORSETTING[p.LOCATION + "_" + p.DIRECTION] == phy &&
                         ppGuid == p.PPGUID);
                     if (sensor != null) {
                         var keyVibra = $"{{{sensor.SSGUID}}}_{SysConstants.VIBRADICT.OverAll}".ToUpper();
                         RedisKeyMap.Add(keyVibra, vibraSignal);
+                        var keyPhase = $"{{{sensor.SSGUID}}}_{SysConstants.VIBRADICT.V1Phase}".ToUpper();
+                        RedisKeyMap.Add(keyPhase, phaseSignal);
                     } else {
                         Log.Warn($"实时数据构建：振动传感器未找到: {phy} ppguid: {ppGuid} (将导致相关判据无法解析)");
                     }
