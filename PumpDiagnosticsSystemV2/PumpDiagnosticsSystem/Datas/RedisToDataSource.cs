@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using PumpDiagnosticsSystem.Core;
 using PumpDiagnosticsSystem.Models;
@@ -46,6 +47,7 @@ namespace PumpDiagnosticsSystem.Datas
                             }
                         }
                     }
+                    Debug.Assert(maxTime > DateTime.MinValue, $"{ppsys.Guid}机泵在运行，但传感器获取不到数据更新。");
                     RuntimeRepo.PumpSysTimeDict.Add(guid, maxTime);
                 }
 

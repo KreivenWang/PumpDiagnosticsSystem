@@ -215,7 +215,7 @@ namespace PumpDiagnosticsSystem.App.ViewModel
                 foreach (var ppsys in RuntimeRepo.PumpSysList.OrderBy(p=>p.Name)) {
                     var time = "数据无更新";
                     if (RuntimeRepo.PumpSysTimeDict.ContainsKey(ppsys.Guid)) {
-                        time = RuntimeRepo.PumpSysTimeDict[ppsys.Guid]?.ToString("yy-MM-dd HH:mm");
+                        time = RuntimeRepo.PumpSysTimeDict[ppsys.Guid].ToString("yy-MM-dd HH:mm");
                     }
                     PPSystems.Add(new PPSysView {
                         Name = ppsys.Name,

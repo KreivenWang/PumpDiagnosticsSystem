@@ -32,7 +32,7 @@ namespace PumpDiagnosticsSystem.Business
                 Log.Inform();
 
                 //设置判据判断结果用的 传感器数据更新时间
-                _ctParser.TdUpdateTime = RuntimeRepo.PumpSysTimeDict[guid] ?? DateTime.Now;
+                _ctParser.TdUpdateTime = RuntimeRepo.PumpSysTimeDict[guid];
 
                 //设置需要进行诊断的机泵系统
                 RuntimeRepo.DiagnosingPumpSys = RuntimeRepo.PumpSysList.First(ps => GuidExt.IsSameGuid(guid, ps.Guid));

@@ -415,6 +415,37 @@ namespace PumpDiagnosticsSystem.Business
                                                                       r.RecordTime >= DateTime.Today &&
                                                                       !r.IsLowProbability).ToList();
                     icRpts = icRpts.Where(r => r.CompCode.Contains(ppsys.Guid.ToFormatedString())).ToList();
+                    
+                    var reportGroups = icRpts.GroupBy(r => new {
+                        rrId = r.RRId,
+                        compCode = r.CompCode,
+                        evMode = r.EventMode,
+                        displayText = r.DisplayText
+                    });
+
+                    //设置总可信度
+                    foreach (var @group in reportGroups) {
+                        var totalCredit = @group.Sum(r => r.Credibility);
+                        if (totalCredit > 1) totalCredit = 1;
+                        foreach (var report in @group) {
+                            report.TotalCredibility = totalCredit;
+                        }
+                    }
+
+                    //保留同一故障中, 最高分档时报的故障
+                    icRpts =
+                        reportGroups.Select(
+                            @group => @group.First(
+                                    rpt => rpt.ConvertRemark2ToGrade() == @group.Max(mrpt => mrpt.ConvertRemark2ToGrade())))
+                            .ToList();
+
+                    
+
+                    //排序 先按置信度降序排序，再增加故障严重程序降序排序，以严重程序为优先
+                    icRpts = icRpts
+                        .OrderByDescending(r => r.TotalCredibility)
+                        .ThenBy(r => r.ConvertRemark2ToGrade())
+                        .ToList();
 
                     buildCount += DataDetailsOp.BuildUIReport(ppsys, icRpts);
                 }

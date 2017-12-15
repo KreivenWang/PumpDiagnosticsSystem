@@ -182,7 +182,16 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="Assets\muParser.dll">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Report\item.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Report\seperator.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Report\table.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="Datas\Redis\RedisDemo.dll" />
     <Content Include="Datas\Redis\ServiceStack.Common.dll" />
@@ -194,7 +203,7 @@
     <Content Include="Datas\Redis\ServiceStack.Text.dll" />
     <Content Include="Datas\Redis\ServiceStack.Text.xml" />
     <Content Include="Assets\PumpSystemPropertyLib.accdb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

@@ -44,7 +44,7 @@ namespace PumpDiagnosticsSystem.Util
         /// <summary>
         /// 机泵系统的更新时间的字典
         /// </summary>
-        public static Dictionary<Guid, DateTime?> PumpSysTimeDict { get; } = new Dictionary<Guid, DateTime?>();
+        public static Dictionary<Guid, DateTime> PumpSysTimeDict { get; } = new Dictionary<Guid, DateTime>();
 
         public static SpectrumAnalyser SpecAnalyser { get; } = new SpectrumAnalyser();
 

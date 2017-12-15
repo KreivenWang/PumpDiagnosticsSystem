@@ -8,6 +8,7 @@ namespace PumpDiagnosticsSystem.Util
     public class ConsoleToLogHelper : TextWriter
     {
         private static readonly string _directory = Directory.GetCurrentDirectory() + "\\Logs\\";
+        private static string _lastWrite = string.Empty;
         /// <summary>
         /// 当在派生类中重写时，返回用来写输出的 <see cref="T:System.Text.Encoding"/>。
         /// </summary>
@@ -29,6 +30,9 @@ namespace PumpDiagnosticsSystem.Util
         /// <param name="text"></param>
         private static void AppendToTodayFile(string text)
         {
+            //如果和上一行内容相同, 则不重复写入
+            if (text == _lastWrite) return;
+
             var filePath = _directory + DateTime.Now.Date.ToString("yyyy-MM-dd") + ".log";
             var fs = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
             fs.Position = fs.Length;//追加文本到文件末尾
@@ -37,6 +41,7 @@ namespace PumpDiagnosticsSystem.Util
             sw.Flush();
             sw.Close();
             fs.Close();
+            _lastWrite = text;
         }
 
         #region Overrides of TextWriter
