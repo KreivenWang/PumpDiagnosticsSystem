@@ -206,7 +206,7 @@ namespace PumpDiagnosticsSystem.App.ViewModel
 
         private void RuntimeRepo_DataUpdated()
         {
-            MainText = $@"{Repo.PSInfo.PSName} - 机泵健康诊断系统";
+            MainText = $@"{GlobalRepo.PSInfo.PSName} - 机泵健康诊断系统";
             
 
             DispatcherHelper.CheckBeginInvokeOnUI(delegate

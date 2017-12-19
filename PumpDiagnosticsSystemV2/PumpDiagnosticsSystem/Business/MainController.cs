@@ -79,7 +79,7 @@ namespace PumpDiagnosticsSystem.Business
             Log.Inform("        【机泵健康诊断子系统】开始运行", true);
             Log.Inform(true);
             Log.Inform($"当前为: {runMode}诊断模式", true);
-            Log.Inform($"泵站代号: {Repo.PSInfo.PSCode}", true);
+            Log.Inform($"泵站代号: {GlobalRepo.PSInfo.PSCode}", true);
             Log.Inform($"数据采集时间间隔: {_sampleInv}s", true);
             Log.Inform($"系统分档数: {GradedCriterion.GradeCount}档", true);
             Log.Inform("=============================================", true);
@@ -134,7 +134,7 @@ namespace PumpDiagnosticsSystem.Business
             var newRRAction = new Action<PumpSystemContext>(context =>
             {
                 var rr = new RunRecord {
-                    PSGuid = Repo.PSInfo.PSCode,
+                    PSGuid = GlobalRepo.PSInfo.PSCode,
                     SampleInv = _sampleInv,
                     GradeCount = GradedCriterion.GradeCount,
                     LaunchTime = DateTime.Now

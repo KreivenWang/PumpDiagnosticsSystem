@@ -169,6 +169,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Security\MacAddress.cs" />
     <Compile Include="Security\RegisterOp.cs" />
+    <Compile Include="Util\GlobalRepository.cs" />
     <Compile Include="Util\ConsoleToLogHelper.cs" />
     <Compile Include="Util\GUIDExtension.cs" />
     <Compile Include="Util\ListExtensions.cs" />

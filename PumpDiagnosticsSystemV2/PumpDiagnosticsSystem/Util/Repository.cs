@@ -22,8 +22,6 @@ namespace PumpDiagnosticsSystem.Util
         /// </summary>
         public const string Separator = ", ";
 
-        public static PumpStationInfo PSInfo { get; private set; }
-
         public static Guid[] PumpGuids { get; private set; }
 
         /// <summary>
@@ -74,9 +72,7 @@ namespace PumpDiagnosticsSystem.Util
 
         public static void Initialize()
         {
-            //获取水厂信息
-            PSInfo = DataDetailsOp.GetPumpStationInfo();
-            
+            GlobalRepo.Initialize();
 
             //获取信号量配置
             PhyDefNoVibra = SqlUtil.GetPhydefNoVibraList();
@@ -97,10 +93,10 @@ namespace PumpDiagnosticsSystem.Util
 
             try {
                 foreach (DataRow row in PumpSysLib.TableConst.Rows) {
-                    Consts.Add(row["ConstName"].ToString(), double.Parse(row[PSInfo.PSCode].ToString()));
+                    Consts.Add(row["ConstName"].ToString(), double.Parse(row[GlobalRepo.PSInfo.PSCode].ToString()));
                 }
             } catch (ArgumentException) {
-                Log.Error($"常量表中找不到 泵站名称：{PSInfo.PSCode ?? "未配置"} 对应的列");
+                Log.Error($"常量表中找不到 泵站名称：{GlobalRepo.PSInfo.PSCode ?? "未配置"} 对应的列");
             }
 
             #endregion
@@ -283,57 +279,58 @@ namespace PumpDiagnosticsSystem.Util
 
             public static void Init()
             {
+                var psCode = GlobalRepo.PSInfo.PSCode;
                 foreach (DataRow row in PumpSysLib.TableSpectrumConst.Rows) {
                     var name = row["ConstName"].ToString();
                     if (name == nameof(ZeroRatio))
-                        ZeroRatio = double.Parse(row[PSInfo.PSCode].ToString());
+                        ZeroRatio = double.Parse(row[psCode].ToString());
 
 //                    else if (name == nameof(BandWidth))
 //                        BandWidth = double.Parse(row[PSInfo.PSCode].ToString());
 
                     else if (name == nameof(AlarmValue))
-                        AlarmValue = double.Parse(row[PSInfo.PSCode].ToString());
+                        AlarmValue = double.Parse(row[psCode].ToString());
 
                     else if (name == nameof(NoiseRegionPartitions))
-                        NoiseRegionPartitions = row[PSInfo.PSCode].ToString().Split(',')
+                        NoiseRegionPartitions = row[psCode].ToString().Split(',')
                             .Select(double.Parse)
                             .ToList();
 
                     else if (name == nameof(FreqRegion_LowToMiddle))
-                        FreqRegion_LowToMiddle = double.Parse(row[PSInfo.PSCode].ToString());
+                        FreqRegion_LowToMiddle = double.Parse(row[psCode].ToString());
 
                     else if (name == nameof(FreqRegion_MiddleToHigh))
-                        FreqRegion_MiddleToHigh = double.Parse(row[PSInfo.PSCode].ToString());
+                        FreqRegion_MiddleToHigh = double.Parse(row[psCode].ToString());
 
                     else if (name == nameof(NoiseAlarmJudge_Base))
-                        NoiseAlarmJudge_Base = double.Parse(row[PSInfo.PSCode].ToString());
+                        NoiseAlarmJudge_Base = double.Parse(row[psCode].ToString());
 
                     else if (name == nameof(NoiseJudge_Pow_Min))
-                        NoiseJudge_Pow_Min = int.Parse(row[PSInfo.PSCode].ToString());
+                        NoiseJudge_Pow_Min = int.Parse(row[psCode].ToString());
 
                     else if (name == nameof(NoiseJudge_Pow_Max))
-                        NoiseJudge_Pow_Max = int.Parse(row[PSInfo.PSCode].ToString());
+                        NoiseJudge_Pow_Max = int.Parse(row[psCode].ToString());
 
                     else if (name == nameof(NoiseAlarmPercent))
-                        NoiseAlarmPercent = double.Parse(row[PSInfo.PSCode].ToString());
+                        NoiseAlarmPercent = double.Parse(row[psCode].ToString());
 
                     else if (name == nameof(NoiseMinWidthPercent))
-                        NoiseMinWidthPercent = double.Parse(row[PSInfo.PSCode].ToString());
+                        NoiseMinWidthPercent = double.Parse(row[psCode].ToString());
 
                     //                    else if (name == nameof(FtJudgeTolerance))
                     //                        FtJudgeTolerance = double.Parse(row[PSInfo.PSCode].ToString());
 
                     else if (name == nameof(SPG_LocalRange))
-                        SPG_LocalRange = int.Parse(row[PSInfo.PSCode].ToString());
+                        SPG_LocalRange = int.Parse(row[psCode].ToString());
 
                     else if (name == nameof(SPG_PeakOverRatio))
-                        SPG_PeakOverRatio = double.Parse(row[PSInfo.PSCode].ToString());
+                        SPG_PeakOverRatio = double.Parse(row[psCode].ToString());
 
                     else if (name == nameof(SPG_IncisiveRatio))
-                        SPG_IncisiveRatio = double.Parse(row[PSInfo.PSCode].ToString());
+                        SPG_IncisiveRatio = double.Parse(row[psCode].ToString());
 
                     else {
-                        Log.Error($"频谱常量表中找不到 泵站名称：{PSInfo.PSCode ?? "未配置"} 对应的列{name}");
+                        Log.Error($"频谱常量表中找不到 泵站名称：{psCode ?? "未配置"} 对应的列{name}");
                     }
                 }
             }

@@ -191,7 +191,7 @@ namespace PumpDiagnosticsSystem.Business
                         var newDr = new DiagRecord {
                             RRId = RuntimeRepo.RRId,
                             IcId = icItem.Id,//判据库中的Id
-                            PSGuid = Repo.PSInfo.PSCode,
+                            PSGuid = GlobalRepo.PSInfo.PSCode,
                             CompCode = comp.Code,
                             DiagCount = 1
                         };

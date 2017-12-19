@@ -47,9 +47,9 @@ namespace PumpDiagnosticsSystem.Datas
                         SysConstants.SENSORSETTING[p.LOCATION + "_" + p.DIRECTION] == phy &&
                         ppGuid == p.PPGUID);
                     if (sensor != null) {
-                        var keyVibra = $"{{{sensor.SSGUID}}}_{SysConstants.VIBRADICT.OverAll}".ToUpper();
+                        var keyVibra = $"{{{sensor.SSGUID}}}_{SysConstants.VibraFields.Overall}".ToUpper();
                         RedisKeyMap.Add(keyVibra, vibraSignal);
-                        var keyPhase = $"{{{sensor.SSGUID}}}_{SysConstants.VIBRADICT.V1Phase}".ToUpper();
+                        var keyPhase = $"{{{sensor.SSGUID}}}_{SysConstants.VibraFields.V1Phase}".ToUpper();
                         RedisKeyMap.Add(keyPhase, phaseSignal);
                     } else {
                         Log.Warn($"实时数据构建：振动传感器未找到: {phy} ppguid: {ppGuid} (将导致相关判据无法解析)");
@@ -70,7 +70,7 @@ namespace PumpDiagnosticsSystem.Datas
 
                 var speedSignal = SpeedTransducer.FormatTdSpeedSignal(ppGuid.ToString());
                 SpData.Add(speedSignal, default(double));
-                var keySpeed = $"{{{ppGuid}}}_{SysConstants.VIBRADICT.Speed}".ToUpper();
+                var keySpeed = $"{{{ppGuid}}}_{SysConstants.VibraFields.Speed}".ToUpper();
                 RedisKeyMap.Add(keySpeed, speedSignal);
             }
 

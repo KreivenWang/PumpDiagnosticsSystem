@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PumpDiagnosticsSystem.Reg",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PumpDiagnosticsSystem.App", "PumpDiagnosticsSystem.App\PumpDiagnosticsSystem.App.csproj", "{BCBA878A-62C6-43D1-9447-46B2F49411C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PumpDiagnosticsSystem.HDataApp", "PumpDiagnosticsSystem.HDataApp\PumpDiagnosticsSystem.HDataApp.csproj", "{EBA0F2E3-68C1-49F6-B915-98866381B926}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{BCBA878A-62C6-43D1-9447-46B2F49411C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BCBA878A-62C6-43D1-9447-46B2F49411C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BCBA878A-62C6-43D1-9447-46B2F49411C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EBA0F2E3-68C1-49F6-B915-98866381B926}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EBA0F2E3-68C1-49F6-B915-98866381B926}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EBA0F2E3-68C1-49F6-B915-98866381B926}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EBA0F2E3-68C1-49F6-B915-98866381B926}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

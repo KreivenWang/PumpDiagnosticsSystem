@@ -27,53 +27,51 @@ namespace PumpDiagnosticsSystem.Datas
         /// <summary>
         ///  振动类参数名称
         /// </summary>
-        public struct VIBRADICT
+        public struct VibraFields
         {
-            /// <summary>
-            /// OverAll
-            /// </summary>
-            public const string OverAll = "OverAll";
+            public const string Overall = "OverAll";
 
-            /// <summary>
-            /// Gap
-            /// </summary>
             public const string Gap = "Gap";
-
             public const string Band1 = "Band1";
-
             public const string Band2 = "Band2";
-
             public const string Band3 = "Band3";
-
             public const string Band4 = "Band4";
 
-            public const string Speed = "Speed";
+            public const string Speed = "SPEED";
+
+            public const string V1mag = "V1mag";
+            public const string V2mag = "V2mag";
+            public const string V3mag = "V3mag";
 
             public const string V1Phase = "V1Phase";
-
             public const string V2Phase = "V2Phase";
+            public const string V3Phase = "V3Phase";
 
+            public const string SSGuid = "SSGUID";
+            public const string PPGuid = "PPGUID";
+
+            public const string PickDate = "PickDate";
         }
 
 
         public static readonly Dictionary<string, string> VIBRADICT2 = new Dictionary<string, string> {
-                   {VIBRADICT.OverAll,"总振值"},
-                   {VIBRADICT.Gap,"间隙电压"},
-                   {VIBRADICT.Band1,"x(1/2)"},
-                   {VIBRADICT.Band2,"x1"},
-                   {VIBRADICT.Band3,"x2"},
-                   {VIBRADICT.Band4,"x3"},
-                   {VIBRADICT.Speed,"转速"}
+                   {VibraFields.Overall,"总振值"},
+                   {VibraFields.Gap,"间隙电压"},
+                   {VibraFields.Band1,"x(1/2)"},
+                   {VibraFields.Band2,"x1"},
+                   {VibraFields.Band3,"x2"},
+                   {VibraFields.Band4,"x3"},
+                   {VibraFields.Speed,"转速"}
                 };
 
         public static readonly Dictionary<string, string> UNIT = new Dictionary<string, string> {
-                   {VIBRADICT.OverAll,"mm/s"},
-                   {VIBRADICT.Gap,"V"},
-                   {VIBRADICT.Band1,""},
-                   {VIBRADICT.Band2,""},
-                   {VIBRADICT.Band3,""},
-                   {VIBRADICT.Band4,""},
-                   {VIBRADICT.Speed,"r/min"}
+                   {VibraFields.Overall,"mm/s"},
+                   {VibraFields.Gap,"V"},
+                   {VibraFields.Band1,""},
+                   {VibraFields.Band2,""},
+                   {VibraFields.Band3,""},
+                   {VibraFields.Band4,""},
+                   {VibraFields.Speed,"r/min"}
                 };
 
         /// <summary>

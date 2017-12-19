@@ -201,8 +201,7 @@ AND [PUMPTYPE].[PPTGUID] = [PUMP].[PPTGUID]";
 
                 var sql =
                     $@"INSERT INTO [PumpVibraDB-UI].[dbo].[DIAGREPORT] (DRTITLE, DRDATE,PSGUID,PPGUID,CREATETIME,DRTYPE,DRCONTENT) 
-  VALUES('{tt}',GETDATE(),'{Repo
-                        .PSInfo.PSGuid}','{ppsys.Guid.ToFormatedString()}',GETDATE(),3,'{contentSb.ToString()}')";
+  VALUES('{tt}',GETDATE(),'{GlobalRepo.PSInfo.PSGuid}','{ppsys.Guid.ToFormatedString()}',GETDATE(),3,'{contentSb.ToString()}')";
                 _sqlOp.ExecuteNonQuery(sql);
             });
 
@@ -213,11 +212,11 @@ AND [PUMPTYPE].[PPTGUID] = [PUMP].[PPTGUID]";
                 var timeBegin = reports.Min(r => r.FirstTime);
                 var timeEnd = reports.Max(r => r.LatestTime);
                 title =
-                    $"{Repo.PSInfo.PSName}{ppsys.Name}{timeBegin.Value.ToString("yy年MM月dd日")} - {timeEnd.Value.ToString("yy年MM月dd日")}";
+                    $"{GlobalRepo.PSInfo.PSName}{ppsys.Name}{timeBegin.Value.ToString("yy年MM月dd日")} - {timeEnd.Value.ToString("yy年MM月dd日")}";
                 saveToDbAction(title);
                 Log.Inform($"已构建历史诊断报告:{title}");
             } else {
-                title = $"{Repo.PSInfo.PSName}{ppsys.Name}{DateTime.Today.ToString("yy年MM月dd日")}";
+                title = $"{GlobalRepo.PSInfo.PSName}{ppsys.Name}{DateTime.Today.ToString("yy年MM月dd日")}";
                 saveToDbAction(title);
                 Log.Inform($"已构建今日诊断报告:{title}");
             }
