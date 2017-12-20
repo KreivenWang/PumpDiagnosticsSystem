@@ -25,5 +25,11 @@ namespace PumpDiagnosticsSystem.Models
         /// 表达式中包含的判据libid所对应的判据副本
         /// </summary>
         public List<Criterion> ExpressionCts { get; } = new List<Criterion>();
+
+        public int GetSlightestGrade()
+        {
+            return ExpressionCts.Where(ct => ct.IsHappening && ct is GradedCriterion).Cast<GradedCriterion>()
+                .Min(gct => (int) gct.HappeningGrade);
+        }
     }
 }

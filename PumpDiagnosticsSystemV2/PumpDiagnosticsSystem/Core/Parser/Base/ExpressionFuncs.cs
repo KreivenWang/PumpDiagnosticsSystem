@@ -110,7 +110,7 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             return new[] {v1, v2, v3, v4}.Max();
         }
 
-        private double SpecFeature(double graphNumber, double feature, double speed, double frequenceInteval,
+        public double SpecFeature(double graphNumber, double feature, double speed, double frequenceInteval,
             double checkPeak)
         {
             if (speed <= 0D) {
@@ -119,9 +119,10 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             }
             var result = 0D;
             if (graphNumber > 0) {
-                var graphData = RuntimeRepo.RtData.Graphs.FirstOrDefault(g => g.Number == (int) graphNumber)?.Data;
-                if (graphData != null) {
-                    var pointLeft = (int) Math.Round(feature*speed/frequenceInteval, MidpointRounding.AwayFromZero);
+                var spec = RuntimeRepo.SpecAnalyser.Specs.FirstOrDefault(g => g.GraphNumber == (int) graphNumber);
+                if (spec != null) {
+                    var graphData = spec.Dots.Select(d => d.Y).ToList();
+                    var pointLeft = (int) Math.Floor(feature*speed/frequenceInteval);
                     var pointRight = pointLeft + 1;
 
                     var gdtLeft = graphData[pointLeft];
@@ -313,9 +314,9 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
                                 g => g.SidePeaks.IsSubsetOf(availableDots) && availableDots.Contains(g.MainPeak));
 
                         foreach (var spg in availableSidePeakGroups) {
-                            LogToRtData($"{spg.Type.ToString()}主峰坐标:[{spg.MainPeak.X},{spg.MainPeak.Y}],编号",spg.MainPeak.Index);
+                            LogToRtData($"{spg.Type.ToString()}主峰坐标:[{spg.MainPeak.X.ToRound()},{spg.MainPeak.Y.ToRound()}],编号",spg.MainPeak.Index);
                             foreach (var sp in spg.SidePeaks) {
-                                LogToRtData($"边频带:[{sp.X},{sp.Y}],编号", sp.Index);
+                                LogToRtData($"边频带:[{sp.X.ToRound()},{sp.Y.ToRound()}],编号", sp.Index);
                             }
                         }
 
@@ -385,14 +386,15 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             return result;
         }
 
-        private double GetDpl(double graphNumber)
+        public double GetDpl(double graphNumber)
         {
             var spec = RuntimeRepo.SpecAnalyser.Specs.FirstOrDefault(s => s.GraphNumber == (int)graphNumber);
             if (spec == null) {
-                Log.Warn($"SpectrumIntegration函数：编号为{graphNumber}的图谱未找到");
+                Log.Warn($"GetDpl函数：编号为{graphNumber}的图谱未找到");
                 return -1;
             }
-            return spec.AxisX.Dpl;
+            LogToRtData("分辨率", spec.AxisX.Dpl.ToRound());
+            return spec.AxisX.Dpl.ToRound();
         }
 
         private double TestStringFunc(string str1, double val1)

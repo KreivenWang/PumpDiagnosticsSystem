@@ -281,6 +281,8 @@ namespace PumpDiagnosticsSystem.Business
                                                                              rptRecord.Remark2 == newRpt.Remark2 &&
                                                                              rptRecord.RRId == newRpt.RRId).ToArray();
                             if (!existRpts.Any()) {
+                                // SHOULD Has same GRADE && has prevIds && same sensor position
+                                // BUT now we only have prevIds here.
                                 var intersects = context.InferComboReports.Select(r => r.LibId).Intersect(icItem.PrevIds).ToList();
                                 if (intersects.Any()) {
                                     newRpt.DisplayText += "(小概率)";

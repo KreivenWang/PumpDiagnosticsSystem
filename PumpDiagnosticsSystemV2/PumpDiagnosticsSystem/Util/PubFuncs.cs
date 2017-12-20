@@ -118,5 +118,10 @@ namespace PumpDiagnosticsSystem.Util
             var matches = rgx.Matches(expression);
             return (from object match in matches select match.ToString()).ToList();
         }
+
+        public static double ToRound(this double value, int digits = 5)
+        {
+            return Math.Round(value, digits);
+        }
     }
 }

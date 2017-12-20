@@ -22,6 +22,9 @@ namespace PumpDiagnosticsSystem.HDataApp
         private readonly StringBuilder SBphyvibra = new StringBuilder();
         private readonly StringBuilder SBpumprun = new StringBuilder();
         private static readonly int _inv = Convert.ToInt32(ConfigurationManager.AppSettings["Inv"]) * 1000;
+        private static readonly int _loopCount = Convert.ToInt32(ConfigurationManager.AppSettings["Loop"]);
+        private int _loopCur = 0;
+
 
         public Form1()
         {
@@ -51,6 +54,7 @@ namespace PumpDiagnosticsSystem.HDataApp
             var ppguids = phyDefNoVibra.Select(s => s.PPGUID).Distinct();
             _sensorList = SqlUtil.GetSensorList().Where(p => ppguids.Contains(p.PPGUID)).ToList();
 
+            this.loopCount.Text = _loopCount.ToString();
             button1_Click(null, null);
         }
 
@@ -64,9 +68,9 @@ namespace PumpDiagnosticsSystem.HDataApp
                 SqlUtil.GetDatFromSqlToRedis(d1.AddMinutes(i).ToString("yyyy-MM-dd HH:mm:ss"), _sensorList, _phyDefNoVibra, _pumpRun, SBphynovibra, SBphyvibra, SBpumprun);
                 SetText(SBphynovibra.ToString(), SBphyvibra.ToString(), SBpumprun.ToString(), d1.AddMinutes(i).ToString("yyyy-MM-dd HH:mm:ss"));
                 Thread.Sleep(_inv);
-                if (i >= max) {
-                    i = 0;
-                }
+//                if (i >= max) {
+//                    i = 0;
+//                }
             }
         }
 
@@ -86,6 +90,19 @@ namespace PumpDiagnosticsSystem.HDataApp
             }
         }
 
+        delegate void SetLoopCallBack(string text);
+        private void SetLoop(string text)
+        {
+            if (this.textBoxPhyVibra.InvokeRequired) {
+                SetLoopCallBack stcb = new SetLoopCallBack(SetLoop);
+                if (this.IsHandleCreated && this.IsDisposed == false) {
+                    this.Invoke(stcb, text);
+                }
+            } else {
+                this.loopCur.Text = text;
+            }
+        }
+
         private void button1_Click(object sender, EventArgs e)
         {
             this.button1.Enabled = false;
@@ -97,7 +114,15 @@ namespace PumpDiagnosticsSystem.HDataApp
             dateTimePicker2.Value = d2;
             dateTimePicker1.Enabled = false;
             dateTimePicker2.Enabled = false;
-            Task.Factory.StartNew(BatchData);
+            Task.Factory.StartNew(() =>
+            {
+                for (; _loopCur <= _loopCount; _loopCur++) {
+                    SetLoop(_loopCur.ToString());
+                    BatchData();
+                }
+
+                SetLoop("运行已结束");
+            });
         }
     }
 }
