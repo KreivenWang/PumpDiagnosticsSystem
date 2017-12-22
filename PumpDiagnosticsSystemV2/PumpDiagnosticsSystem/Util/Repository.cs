@@ -277,6 +277,8 @@ namespace PumpDiagnosticsSystem.Util
 
             public static double SPG_IncisiveRatio { get; private set; } = 0.3D;
 
+            public static int SPG_SpCount { get; private set; } = 1;
+
             public static void Init()
             {
                 var psCode = GlobalRepo.PSInfo.PSCode;
@@ -328,6 +330,9 @@ namespace PumpDiagnosticsSystem.Util
 
                     else if (name == nameof(SPG_IncisiveRatio))
                         SPG_IncisiveRatio = double.Parse(row[psCode].ToString());
+
+                    else if (name == nameof(SPG_SpCount))
+                        SPG_SpCount = int.Parse(row[psCode].ToString());
 
                     else {
                         Log.Error($"频谱常量表中找不到 泵站名称：{psCode ?? "未配置"} 对应的列{name}");

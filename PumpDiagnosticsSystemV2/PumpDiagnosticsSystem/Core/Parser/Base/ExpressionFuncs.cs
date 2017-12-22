@@ -281,6 +281,11 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
                 return result;
             }
 
+            if (spec.RPM == 0) {
+                LogToRtData("转速为", spec.RPM);
+                return result;
+            }
+
             var fqRegionTypes = (Spectrum.FreqRegionType) freqRegions;
             const Spectrum.FreqRegionType allFqRegionTypes = Spectrum.FreqRegionType.Low |
                                                              Spectrum.FreqRegionType.Middle |
@@ -350,6 +355,7 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
             //1. 判断底脚
             var footerGradeTypes = (Spectrum.FooterGradeType)footerGrades;
             if (footerGradeTypes == 0D) {
+                
                 //做些不需要底脚的判断
                 result = judgeResult(spec.Dots);
             } else {

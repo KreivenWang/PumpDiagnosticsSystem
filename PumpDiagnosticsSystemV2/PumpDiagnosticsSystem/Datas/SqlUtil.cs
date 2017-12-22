@@ -67,6 +67,7 @@ namespace PumpDiagnosticsSystem.Datas
                                 PDNVCODE = p.Field<string>("PDNVCODE"),
                                 PPGUID = p.Field<Guid>("PPGUID"),
                                 PDNVNAME = p.Field<string>("PDNVNAME"),
+                                PDNVTYPE = p.Field<string>("PDNVTYPE"),
                                 PSGUID = p.Field<Guid>("PSGUID"),
                                 REMARK = p.Field<string>("REMARK"),
                                 ITEMCODE = "$" + p.Field<string>("REMARK") + "_" + p.Field<Guid>("PPGUID")
@@ -164,16 +165,19 @@ WHERE B.PICKDATE='{timeStr}'";
                     SBpumprun.AppendLine(ppguid + ":" + timeStr);
                     //如果没有运行设置power为0
                     if (!isNeedPhase) {
-                        if (dt.Rows[i][_pumpRun[ppguid]].ToString() == "0") {
-                            redisClient.Set("{" + ppguid.ToUpper() + "}_Power", 0);
-                            SBpumprun.AppendLine(ppguid + "机泵没运行");
-                        } else {
-                            redisClient.Set("{" + ppguid.ToUpper() + "}_Power", 1);
-                            SBpumprun.AppendLine(ppguid + "机泵运行");
-                        }
-                        foreach (var item in phyDefNoVibra[ppguid]) {
-                            redisClient.Set("{" + ppguid.ToUpper() + "}_" + item, dt.Rows[i][item]);
-                            SBphynovibra.AppendLine("{" + ppguid + "}_" + item + ":" + dt.Rows[i][item]);
+                        //数据库记录里THSC的表混入了不对的PPGUID 所以这里做个判断
+                        if (_pumpRun.Any() && _pumpRun.ContainsKey(ppguid)) {
+                            if (dt.Rows[i][_pumpRun[ppguid]].ToString() == "0") {
+                                redisClient.Set("{" + ppguid.ToUpper() + "}_Power", 0);
+                                SBpumprun.AppendLine(ppguid + "机泵没运行");
+                            } else {
+                                redisClient.Set("{" + ppguid.ToUpper() + "}_Power", 1);
+                                SBpumprun.AppendLine(ppguid + "机泵运行");
+                            }
+                            foreach (var item in phyDefNoVibra[ppguid]) {
+                                redisClient.Set("{" + ppguid.ToUpper() + "}_" + item, dt.Rows[i][item]);
+                                SBphynovibra.AppendLine("{" + ppguid + "}_" + item + ":" + dt.Rows[i][item]);
+                            }
                         }
                     }
                 }
@@ -190,7 +194,9 @@ WHERE B.PICKDATE='{timeStr}'";
                         V3mag = p.Field<double>(VF.V3mag),
                         V1Phase = p.Field<double>(VF.V1Phase),
                         V2Phase = p.Field<double>(VF.V2Phase),
-                        V3Phase = p.Field<double>(VF.V3Phase),
+
+                        //有时候V3Phase是"", 所以加个判断 如果没有值, 那就设置为-1
+                        V3Phase = string.IsNullOrEmpty(p.Field<string>(VF.V3Phase)) ? -1D : p.Field<double>(VF.V3Phase),
                     };
 
                 var filePath = ConfigurationManager.AppSettings["FilePath"];
@@ -201,17 +207,17 @@ WHERE B.PICKDATE='{timeStr}'";
                 foreach (var item in vibDatas) {
 
                     redisClient.Set("{" + item.SSGUID.ToString().ToUpper() + "}_OVERALL", item.OVERALL);
-                    redisClient.Set<string>("{" + item.SSGUID.ToString().ToUpper() + "}_PICKDATE", timeStr);
+                    redisClient.Set("{" + item.SSGUID.ToString().ToUpper() + "}_PICKDATE", timeStr);
                     redisClient.Set("{" + item.PPGUID.ToString().ToUpper() + "}_SPEED", item.SPEED); //item.SPEED);
-                    redisClient.Set<string>("{" + item.PPGUID.ToString().ToUpper() + "}_SPEED_PICKDATE", timeStr);
+                    redisClient.Set("{" + item.PPGUID.ToString().ToUpper() + "}_SPEED_PICKDATE", timeStr);
 
 
-                    redisClient.Set(("{" + item.SSGUID.ToString() + "}_" + SysConstants.VibraFields.V2mag).ToUpper(), item.V2mag);
-                    redisClient.Set(("{" + item.SSGUID.ToString() + "}_" + SysConstants.VibraFields.V2Phase).ToUpper(), item.V2Phase);
-                    redisClient.Set(("{" + item.SSGUID.ToString() + "}_" + SysConstants.VibraFields.V1mag).ToUpper(), item.V1mag);
-                    redisClient.Set(("{" + item.SSGUID.ToString() + "}_" + SysConstants.VibraFields.V1Phase).ToUpper(), item.V1Phase);
-                    redisClient.Set(("{" + item.SSGUID.ToString() + "}_" + SysConstants.VibraFields.V3mag).ToUpper(), item.V3mag);
-                    redisClient.Set(("{" + item.SSGUID.ToString() + "}_" + SysConstants.VibraFields.V3Phase).ToUpper(), item.V3Phase);
+                    redisClient.Set(("{" + item.SSGUID + "}_" + VF.V2mag).ToUpper(), item.V2mag);
+                    redisClient.Set(("{" + item.SSGUID + "}_" + VF.V2Phase).ToUpper(), item.V2Phase);
+                    redisClient.Set(("{" + item.SSGUID + "}_" + VF.V1mag).ToUpper(), item.V1mag);
+                    redisClient.Set(("{" + item.SSGUID + "}_" + VF.V1Phase).ToUpper(), item.V1Phase);
+                    redisClient.Set(("{" + item.SSGUID + "}_" + VF.V3mag).ToUpper(), item.V3mag);
+                    redisClient.Set(("{" + item.SSGUID + "}_" + VF.V3Phase).ToUpper(), item.V3Phase);
 
                     SBpumprun.AppendLine(item.PPGUID + "转速" + item.SPEED);
 

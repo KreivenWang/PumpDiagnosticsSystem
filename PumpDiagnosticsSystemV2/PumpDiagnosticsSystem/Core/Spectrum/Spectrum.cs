@@ -750,7 +750,11 @@ namespace PumpDiagnosticsSystem.Core
                                     } else {
                                         var group = new SidePeakGroup(spGroupType, mainPeak);
                                         group.SidePeaks.Add(possibleSidePeak);
-                                        result.Add(group);
+
+                                        //边频带峰的个数要大于等于一定数量
+                                        if (group.SidePeaks.Count >= Const.SPG_SpCount) {
+                                            result.Add(group);
+                                        }
                                     }
                                 }
                             }
