@@ -153,7 +153,8 @@ namespace PumpDiagnosticsSystem.Util
                 {CompType.Td_T, "@T"},
                 {CompType.Td_S, "@Speed"},
                 {CompType.Td_V, "@OverAll"},
-
+                {CompType.PA, "@I"},
+                {CompType.PV, "@U"}
             };
 
             /// <summary>
@@ -185,8 +186,8 @@ namespace PumpDiagnosticsSystem.Util
                 {"VibrationTransducer", CompType.Td_V},
                 {"TTransducer", CompType.Td_T},
                 {"SpeedTransducer", CompType.Td_S},
-                {"AmMeter", CompType.PA},
-                {"VoltMeter", CompType.PV},
+                {"CurrentTransducer", CompType.PA},
+                {"VoltageTransducer", CompType.PV},
                 {"FrequenceMeter", CompType.PF}
             };
 
