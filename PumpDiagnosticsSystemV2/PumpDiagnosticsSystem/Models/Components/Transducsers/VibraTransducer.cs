@@ -16,7 +16,7 @@ namespace PumpDiagnosticsSystem.Models
 
         public static string ConvertSignalToPhaseSignal(string vibraTdSignal)
         {
-            return vibraTdSignal.Replace("$V_", "$Phase_");
+            return vibraTdSignal.Replace("$", "$Phase_");
         }
 
         #region Overrides of BaseComponent

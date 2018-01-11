@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using PumpDiagnosticsSystem.Util;
 
 namespace PumpDiagnosticsSystem.Datas
 {
@@ -92,76 +95,131 @@ namespace PumpDiagnosticsSystem.Datas
 
         }
 
+        #region SensorSetting
 
+        private static Dictionary<string, string> _sensorSetting;
 
-
-
-
-
-        /// <summary>
-        /// 传感器测方向
-        /// </summary>
-        public struct DIRECTION
+        public static Dictionary<string, string> SENSORSETTING
         {
-            /// <summary>
-            /// 水平
-            /// </summary>
-            public const byte X = 1;
-
-            /// <summary>
-            /// 垂直
-            /// </summary>
-            public const byte Y = 2;
-
-            /// <summary>
-            /// 轴向
-            /// </summary>
-            public const byte Z = 3;
-
+            get
+            {
+                if (_sensorSetting == null)
+                    LoadSensorSetting();
+                return _sensorSetting;
+            }
         }
 
+        private static void LoadSensorSetting()
+        {
+            const string directionSection = "SENSORDIRECTION";
+            const string locationSection = "SENSORLOCATION";
+            _sensorSetting = new Dictionary<string, string>();
 
-        public static Dictionary<string, string> SENSORSETTING { get; } = new Dictionary<string, string> {
+            var dkeys = InIOp.ReadSingleSection(directionSection);
+            var lkeys = InIOp.ReadSingleSection(locationSection);
 
-            {LOCATION.PUMPIN + "_" + DIRECTION.X, SENSORNAME.V_Pump_Drived_X},
-            {LOCATION.PUMPIN + "_" + DIRECTION.Y, SENSORNAME.V_Pump_Drived_Y},
-            {LOCATION.PUMPOUT + "_" + DIRECTION.X, SENSORNAME.V_Pump_NonDrived_X},
-            {LOCATION.PUMPOUT + "_" + DIRECTION.Y, SENSORNAME.V_Pump_NonDrived_Y},
-            {LOCATION.MOTORIN + "_" + DIRECTION.X, SENSORNAME.V_Motor_Drived_X},
-            {LOCATION.MOTORIN + "_" + DIRECTION.Y, SENSORNAME.V_Motor_Drived_Y},
-            {LOCATION.MOTOROUT + "_" + DIRECTION.X, SENSORNAME.V_Motor_NonDrived_X},
-            {LOCATION.MOTOROUT + "_" + DIRECTION.Y, SENSORNAME.V_Motor_NonDrived_Y},
-            {LOCATION.PUMPIN + "_" + DIRECTION.Z, SENSORNAME.V_Pump_Drived_Z},
-            {LOCATION.PUMPOUT + "_" + DIRECTION.Z, SENSORNAME.V_Pump_NonDrived_Z},
-            {LOCATION.MOTORIN + "_" + DIRECTION.Z, SENSORNAME.V_Motor_Drived_Z},
-            {LOCATION.MOTOROUT + "_" + DIRECTION.Z, SENSORNAME.V_Motor_NonDrived_Z},
-            {LOCATION.MOTORFOOT + "_" + DIRECTION.Y, SENSORNAME.V_Motor_Foot_Y},
-        };
+            foreach (var dkey in dkeys) {
+                var dvalue = InIOp.IniReadValue(directionSection, dkey);
+                foreach (var lkey in lkeys) {
+                    var lvalue = InIOp.IniReadValue(locationSection, lkey);
+                    //组合成 1_1 , PUMPIN_X 这样的
+                    _sensorSetting.Add($"{lvalue}_{dvalue}", $"{lkey}_{dkey}");
+                }
+            }
+        }
 
-        public static string[] PHYDEF_NONVIBRA { get; } = {
-            PHYDEFNAME.P_In,
-            PHYDEFNAME.P_Out,
-            PHYDEFNAME.F,
-            PHYDEFNAME.Ia,
-            PHYDEFNAME.Ib,
-            PHYDEFNAME.Ic,
-            PHYDEFNAME.Ua,
-            PHYDEFNAME.Ub,
-            PHYDEFNAME.Uc,
-//            PHYDEFNAME.Speed, 转速单独
-            PHYDEFNAME.Frequence,
-            PHYDEFNAME.T_Pump_Drived,
-            PHYDEFNAME.T_Pump_NonDrived,
-            PHYDEFNAME.T_Motor_Drived,
-            PHYDEFNAME.T_Motor_NonDrived,
-            PHYDEFNAME.T_Motor_Coil_A,
-            PHYDEFNAME.T_Motor_Coil_B,
-            PHYDEFNAME.T_Motor_Coil_C,
-        };
+        //public static Dictionary<string, string> SENSORSETTING { get; } = new Dictionary<string, string> {
 
+        //    {LOCATION.PUMPIN + "_" + DIRECTION.X, SENSORNAME.V_Pump_Drived_X},
+        //    {LOCATION.PUMPIN + "_" + DIRECTION.Y, SENSORNAME.V_Pump_Drived_Y},
+        //    {LOCATION.PUMPOUT + "_" + DIRECTION.X, SENSORNAME.V_Pump_NonDrived_X},
+        //    {LOCATION.PUMPOUT + "_" + DIRECTION.Y, SENSORNAME.V_Pump_NonDrived_Y},
+        //    {LOCATION.MOTORIN + "_" + DIRECTION.X, SENSORNAME.V_Motor_Drived_X},
+        //    {LOCATION.MOTORIN + "_" + DIRECTION.Y, SENSORNAME.V_Motor_Drived_Y},
+        //    {LOCATION.MOTOROUT + "_" + DIRECTION.X, SENSORNAME.V_Motor_NonDrived_X},
+        //    {LOCATION.MOTOROUT + "_" + DIRECTION.Y, SENSORNAME.V_Motor_NonDrived_Y},
+        //    {LOCATION.PUMPIN + "_" + DIRECTION.Z, SENSORNAME.V_Pump_Drived_Z},
+        //    {LOCATION.PUMPOUT + "_" + DIRECTION.Z, SENSORNAME.V_Pump_NonDrived_Z},
+        //    {LOCATION.MOTORIN + "_" + DIRECTION.Z, SENSORNAME.V_Motor_Drived_Z},
+        //    {LOCATION.MOTOROUT + "_" + DIRECTION.Z, SENSORNAME.V_Motor_NonDrived_Z},
+
+        //    {LOCATION.MOTORFOOT + "_" + DIRECTION.Y, SENSORNAME.V_Motor_Foot_Y},
+
+        //    {LOCATION.PUMPCORNERFOOT1 + "_" + DIRECTION.Y, SENSORNAME.V_Motor_Foot_1},
+        //    {LOCATION.PUMPCORNERFOOT2 + "_" + DIRECTION.Y, SENSORNAME.V_Motor_Foot_2},
+        //    {LOCATION.PUMPCORNERFOOT3 + "_" + DIRECTION.Y, SENSORNAME.V_Motor_Foot_3},
+        //    {LOCATION.PUMPCORNERFOOT4 + "_" + DIRECTION.Y, SENSORNAME.V_Motor_Foot_4},
+
+        //    {LOCATION.MOTORCORNERFOOT1 + "_" + DIRECTION.Y, SENSORNAME.V_Pump_Foot_1},
+        //    {LOCATION.MOTORCORNERFOOT2 + "_" + DIRECTION.Y, SENSORNAME.V_Pump_Foot_2},
+        //    {LOCATION.MOTORCORNERFOOT3 + "_" + DIRECTION.Y, SENSORNAME.V_Pump_Foot_3},
+        //    {LOCATION.MOTORCORNERFOOT4 + "_" + DIRECTION.Y, SENSORNAME.V_Pump_Foot_4},
+
+        //};
+
+        #endregion
+
+        #region PHYDEF_NONVIBRA
+
+        private static string[] _phydef_nonvibra;
+
+        public static string[] PHYDEF_NONVIBRA
+        {
+            get
+            {
+                if (_phydef_nonvibra == null)
+                    LoadPHYDEF_NONVIBRA();
+                return _phydef_nonvibra;
+            }
+        }
+
+        private static void LoadPHYDEF_NONVIBRA()
+        {
+            const string section = "PHYDEF_NONVIBRA";
+            var tlist = new List<string>();
+
+            var pkeys = InIOp.ReadSingleSection(section);
+
+            foreach (var pkey in pkeys) {
+                var pvalue = InIOp.IniReadValue(section, pkey);
+                if (bool.Parse(pvalue)) {
+                    tlist.Add(pkey);
+                }
+            }
+
+            _phydef_nonvibra = tlist.ToArray();
+        }
+
+        //        public static string[] PHYDEF_NONVIBRA { get; } = {
+        //            PHYDEFNAME.P_In,
+        //            PHYDEFNAME.P_Out,
+        //            PHYDEFNAME.F,
+        //            PHYDEFNAME.Ia,
+        //            PHYDEFNAME.Ib,
+        //            PHYDEFNAME.Ic,
+        //            PHYDEFNAME.Ua,
+        //            PHYDEFNAME.Ub,
+        //            PHYDEFNAME.Uc,
+        ////            PHYDEFNAME.Speed, 转速单独
+        //            PHYDEFNAME.Frequence,
+        //            PHYDEFNAME.T_Pump_Drived,
+        //            PHYDEFNAME.T_Pump_NonDrived,
+        //            PHYDEFNAME.T_Motor_Drived,
+        //            PHYDEFNAME.T_Motor_NonDrived,
+        //            PHYDEFNAME.T_Motor_Coil_A,
+        //            PHYDEFNAME.T_Motor_Coil_B,
+        //            PHYDEFNAME.T_Motor_Coil_C,
+        //        };
+
+        #endregion
+
+        public static string[] AllTdPoses => SENSORSETTING.Values.Concat(PHYDEF_NONVIBRA).ToArray();
+
+        #region obsolete / no usage
         /// <summary>
         /// 传感器对应表
         /// </summary>
+        [Obsolete("no more plus position definition")]
         public struct SENSORNAME
         {
             public const string V_Pump_Drived_X = "V_Pump_Drived_X";
@@ -180,11 +238,45 @@ namespace PumpDiagnosticsSystem.Datas
 
             public const string V_Motor_Foot_Y = "V_Motor_Foot_Y";
 
+            public const string V_Motor_Foot_1 = "V_Motor_Foot_1";
+            public const string V_Motor_Foot_2 = "V_Motor_Foot_2";
+            public const string V_Motor_Foot_3 = "V_Motor_Foot_3";
+            public const string V_Motor_Foot_4 = "V_Motor_Foot_4";
+
+            public const string V_Pump_Foot_1 = "V_Pump_Foot_1";
+            public const string V_Pump_Foot_2 = "V_Pump_Foot_2";
+            public const string V_Pump_Foot_3 = "V_Pump_Foot_3";
+            public const string V_Pump_Foot_4 = "V_Pump_Foot_4";
+
         };
+
+
+        /// <summary>
+        /// 传感器测方向
+        /// </summary>
+        [Obsolete("replaced by app.ini")]
+        public struct DIRECTION
+        {
+            /// <summary>
+            /// 水平
+            /// </summary>
+            public const byte X = 1;
+
+            /// <summary>
+            /// 垂直
+            /// </summary>
+            public const byte Y = 2;
+
+            /// <summary>
+            /// 轴向
+            /// </summary>
+            public const byte Z = 3;
+        }
 
         /// <summary>
         /// 信号量对应表
         /// </summary>
+        [Obsolete("replaced by app.ini")]
         public struct PHYDEFNAME
         {
             public const string P_In = "P_In";
@@ -219,6 +311,7 @@ namespace PumpDiagnosticsSystem.Datas
         /// <summary>
         /// 传感器安装位置
         /// </summary>
+        [Obsolete("replaced by app.ini")]
         public struct LOCATION
         {
             /// <summary>
@@ -242,9 +335,56 @@ namespace PumpDiagnosticsSystem.Datas
             public const byte MOTOROUT = 4;
 
             /// <summary>
-            /// 底脚
+            /// 电机底脚
             /// </summary>
             public const byte MOTORFOOT = 5;
+
+            /// <summary>
+            /// 水泵底脚
+            /// </summary>
+            public const byte PUMPFOOT = 6;
+
+
+            /// <summary>
+            /// 水泵底脚顶点1
+            /// </summary>
+            public const byte PUMPCORNERFOOT1 = 7;
+
+            /// <summary>
+            /// 水泵底脚顶点2
+            /// </summary>
+            public const byte PUMPCORNERFOOT2 = 8;
+
+            /// <summary>
+            /// 水泵底脚顶点3
+            /// </summary>
+            public const byte PUMPCORNERFOOT3 = 9;
+
+            /// <summary>
+            /// 水泵底脚顶点4
+            /// </summary>
+            public const byte PUMPCORNERFOOT4 = 10;
+
+
+            /// <summary>
+            /// 水泵底脚顶点1
+            /// </summary>
+            public const byte MOTORCORNERFOOT1 = 11;
+
+            /// <summary>
+            /// 水泵底脚顶点2
+            /// </summary>
+            public const byte MOTORCORNERFOOT2 = 12;
+
+            /// <summary>
+            /// 水泵底脚顶点3
+            /// </summary>
+            public const byte MOTORCORNERFOOT3 = 13;
+
+            /// <summary>
+            /// 水泵底脚顶点4
+            /// </summary>
+            public const byte MOTORCORNERFOOT4 = 14;
         }
 
 
@@ -329,6 +469,8 @@ namespace PumpDiagnosticsSystem.Datas
             public const string ZBSC = "zbsc";
             public const string THSC = "thsc";
         }
+
+        #endregion
     }
 }
 

@@ -171,7 +171,7 @@ namespace PumpDiagnosticsSystem.Tests
 
             #endregion
 
-            var spec = new Spectrum(ppguid, ssguid, graphNum, rpm, fmax, data.Split(',').Select(double.Parse), TdPos.V_Pump_NonDrived_Y);
+            var spec = new Spectrum(ppguid, ssguid, graphNum, rpm, fmax, data.Split(',').Select(double.Parse), "PUMPOUT_Y");
             RuntimeRepo.RtData = new RtData();
             RuntimeRepo.SpecAnalyser.UpdateSpecs(new List<Guid> {ppguid}, new List<Spectrum> {spec});
             var parser = new ExpressionParser();

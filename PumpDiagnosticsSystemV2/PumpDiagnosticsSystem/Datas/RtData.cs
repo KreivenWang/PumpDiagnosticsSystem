@@ -85,7 +85,7 @@ namespace PumpDiagnosticsSystem.Datas
                     var sensor =
                         Repo.SensorList.FirstOrDefault(
                             p => p.LOCATION + "_" + p.DIRECTION == sensorSetting.Key && pumpGuid == p.PPGUID);
-                    var pos = FindPosFromSignal(sensorSetting.Value);
+                    var pos = sensorSetting.Value;
                     Debug.Assert(pos != null, "sensorSetting 传感器位置无法解析");
                     if (sensor == null)
                         continue;
@@ -94,7 +94,7 @@ namespace PumpDiagnosticsSystem.Datas
                         SSGuid = sensor.SSGUID,
                         Signal = PubFuncs.FormatGraphSignal(sensor.SSGUID.ToString(), GraphType.Spectrum),
                         Number = graphNumber++,
-                        Pos = pos.Value,
+                        Pos = pos,
                         Type = GraphType.Spectrum
                     });
 
@@ -103,7 +103,7 @@ namespace PumpDiagnosticsSystem.Datas
                         SSGuid = sensor.SSGUID,
                         Signal = PubFuncs.FormatGraphSignal(sensor.SSGUID.ToString(), GraphType.TimeWave),
                         Number = graphNumber++,
-                        Pos = pos.Value,
+                        Pos = pos,
                         Type = GraphType.TimeWave
                     });
                 }
@@ -113,14 +113,14 @@ namespace PumpDiagnosticsSystem.Datas
 
         }
 
-        private TdPos? FindPosFromSignal(string str)
-        {
-            foreach (var name in Enum.GetNames(typeof(TdPos))) {
-                if (str.Contains(name))
-                    return (TdPos)Enum.Parse(typeof (TdPos), name);
-            }
-            return null;
-        }
+        //private TdPos? FindPosFromSignal(string str)
+        //{
+        //    foreach (var name in Enum.GetNames(typeof(TdPos))) {
+        //        if (str.Contains(name))
+        //            return (TdPos)Enum.Parse(typeof (TdPos), name);
+        //    }
+        //    return null;
+        //}
 
         public double? FindSignalValue(string signal)
         {

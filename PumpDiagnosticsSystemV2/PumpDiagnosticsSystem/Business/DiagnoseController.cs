@@ -178,7 +178,7 @@ namespace PumpDiagnosticsSystem.Business
                 FirstTime = graph.Time,
                 LatestTime = graph.Time,
                 Feature = feature,
-                Position = graph.Pos.ToString(),
+                Position = graph.Pos,
                 LatestValue = max,
                 MaxValue = max
             };
@@ -201,7 +201,7 @@ namespace PumpDiagnosticsSystem.Business
                 msgs.Add(ppSys.Guid.ToFormatedString());
                 msgs.Add(GetSpeed(ppSys)?.ToString() ?? "-1");
                 msgs.Add(graph.Time.ToString("yyyy-MM-dd HH:mm:ss"));
-                msgs.Add(graph.Pos.ToString());
+                msgs.Add(graph.Pos);
                 msgs.Add(graph.Type.ToString());
                 msgs.Add(GraphArchive.FromGraph(graph).DataStr);
                 var msg = string.Join("|||", msgs);

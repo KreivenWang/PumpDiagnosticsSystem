@@ -152,7 +152,7 @@ namespace PumpDiagnosticsSystem.Models
                     var tdtype = Repo.Map.TypeToEnum[row["RefType"].ToString()];
 
                     //再根据位置找到该传感器
-                    var tdpos = (TdPos) Enum.Parse(typeof (TdPos), row["Position"].ToString());
+                    var tdpos = row["Position"].ToString();
 
                     var td = Transducers.Find(t => t.Type == tdtype && t.Position == tdpos);
 
@@ -222,7 +222,7 @@ namespace PumpDiagnosticsSystem.Models
             public string Variable { get; set; }
             public string Value { get; set; }
             public CompType CompType { get; set; }
-            public TdPos? TdPos { get; set; }
+            public string TdPos { get; set; }
         }
 
         public List<ReportItem> GetReport()

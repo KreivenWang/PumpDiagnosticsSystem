@@ -30,7 +30,7 @@ namespace PumpDiagnosticsSystem.Models
         {
             Signal = FormatTdSpeedSignal(ppGuid.ToString());
             NameRemark = "×ªËÙ±äËÍÆ÷";
-            Position = TdPos.Speed;
+            Position = "Speed";
 //            BuildFMEATrees();
         }
 

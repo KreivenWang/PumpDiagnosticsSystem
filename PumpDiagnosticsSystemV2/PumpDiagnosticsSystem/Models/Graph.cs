@@ -8,7 +8,7 @@ namespace PumpDiagnosticsSystem.Models
     {
         public DateTime Time { get; set; }
 
-        public TdPos Pos { get; set; }
+        public string Pos { get; set; }
 
         public GraphType Type { get; set; }
 

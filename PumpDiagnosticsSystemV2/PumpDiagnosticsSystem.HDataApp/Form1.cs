@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -53,6 +54,11 @@ namespace PumpDiagnosticsSystem.HDataApp
             //获取传感器配置
             var ppguids = phyDefNoVibra.Select(s => s.PPGUID).Distinct();
             _sensorList = SqlUtil.GetSensorList().Where(p => ppguids.Contains(p.PPGUID)).ToList();
+
+            using (new SharedTool("Administrator", "123.net", "192.168.0.9")) {
+                string selectPath = @"\\192.168.0.9\XMData";
+                MessageBox.Show("共享文件夹权限已获取");
+            }
 
             this.loopCount.Text = _loopCount.ToString();
             button1_Click(null, null);

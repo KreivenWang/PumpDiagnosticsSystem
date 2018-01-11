@@ -125,6 +125,12 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
                     var pointLeft = (int) Math.Floor(feature*speed/frequenceInteval);
                     var pointRight = pointLeft + 1;
 
+                    //计算出的左边点必须>0,否则dotStart 无法计算
+                    if (pointLeft <= 0 || pointRight > graphData.Count) {
+                        Log.Warn($"转速问题: 当前转速{speed}");
+                        return -1;
+                    }
+
                     var gdtLeft = graphData[pointLeft];
                     var gdtRight = graphData[pointRight];
 

@@ -376,7 +376,7 @@ namespace PumpDiagnosticsSystem.Core
 
         #region ctor
 
-        public Spectrum(Guid ppGuid, Guid ssGuid, int graphNum, double rpm, double bandWidth, IEnumerable<double> data, TdPos tdPos)
+        public Spectrum(Guid ppGuid, Guid ssGuid, int graphNum, double rpm, double bandWidth, IEnumerable<double> data, string tdPos)
         {
             //Data Initialize
             PPGuid = ppGuid;
@@ -442,27 +442,25 @@ namespace PumpDiagnosticsSystem.Core
         /// <summary>
         /// 把传感器的信息转换到频谱的位置信息
         /// </summary>
-        private void ParseTdPosToPosition(TdPos pos)
+        private void ParseTdPosToPosition(string pos)
         {
-            var posStr = pos.ToString();
-
-            if (posStr.Contains("_Pump")) {
+            if (pos.Contains("PUMPIN") || pos.Contains("PUMPOUT")) {
                 Pos.CompPos = Position.Component.Pump;
-            } else if (posStr.Contains("_Motor")) {
+            } else if (pos.Contains("MOTORIN") || pos.Contains("MOTOROUT")) {
                 Pos.CompPos = Position.Component.Motor;
             }
 
-            if (posStr.Contains("_X")) {
+            if (pos.Contains("_X")) {
                 Pos.DirectionPos = Position.Direction.X;
-            } else if (posStr.Contains("_Y")) {
+            } else if (pos.Contains("_Y")) {
                 Pos.DirectionPos = Position.Direction.Y;
-            } else if (posStr.Contains("_Z")) {
+            } else if (pos.Contains("_Z")) {
                 Pos.DirectionPos = Position.Direction.Z;
             }
 
-            if (posStr.Contains("_Drived")) {
+            if (pos.Contains("PUMPIN") || pos.Contains("MOTORIN")) {
                 Pos.DriverPos = Position.Driver.In;
-            } else if (posStr.Contains("_NonDrived")) {
+            } else if (pos.Contains("PUMPOUT") || pos.Contains("MOTOROUT")) {
                 Pos.DriverPos = Position.Driver.Out;
             }
         }
@@ -692,24 +690,66 @@ namespace PumpDiagnosticsSystem.Core
             var alarmPercentValue = AxisY.AlarmValue*Const.NoiseAlarmPercent;
 
             //寻找噪音段
-            var overDotXs =
-                this.Dots.Where(d => d.Y >= alarmPercentValue* Math.Pow(Const.NoiseAlarmJudge_Base, beginPow) &&
-                                d.Y <= alarmPercentValue* Math.Pow(Const.NoiseAlarmJudge_Base, endPow))
-                    .Select(d => d.Index).ToList();
+            var overDotIndexes =
+                this.Dots.Where(d => d.Y >= alarmPercentValue*Math.Pow(Const.NoiseAlarmJudge_Base, beginPow) &&
+                                     d.Y <= alarmPercentValue*Math.Pow(Const.NoiseAlarmJudge_Base, endPow))
+                    .Select(d => d.Index)
+                    .ToList();
 
-            //获取连续的值 组成的列表
-            var continuesPairs = PubFuncs.FindContinues(overDotXs);
-
-            // 噪声最小宽度为: 20RPS x 1/3
+            // 噪声最小宽度为: 20RPS x 1/3 x 1/3
             var minWidth = NoiseRegions[0].EndFrequence * Const.NoiseMinWidthPercent;
 
-            //60多好像太宽了 1个都没有, 设个6吧
-            //6个也太宽, 测试用 2个?
-//            minWidth = 2;
+            //现在不获取连续的值, 改为从 最小宽度 去匹配: 频率中 50%(可调)的点都在overDotXs中 (20171225, 根据实验汽蚀模拟的结果来调整算法)
 
-            result = continuesPairs.FindAll(p => p.Item2 * AxisX.Dpl - p.Item1 * AxisX.Dpl >= minWidth);
+            #region 获取连续值的算法
+            //获取连续的值 组成的列表 
+            //var continuesPairs = PubFuncs.FindContinues(overDotIndexes);
+            //result = continuesPairs.FindAll(p => p.Item2*AxisX.Dpl - p.Item1*AxisX.Dpl >= minWidth);
+            #endregion
+
+            var tempResult = new List<Tuple<int, int>>();
+            var maxX = Dots.Last().X;
+
+            //遍历所有点
+            foreach (var dotLeft in Dots) {
+                var xLeft = dotLeft.X;
+                var xRight = xLeft + minWidth; //起始按频率最小宽度来找
+
+                //超过图谱之外之后 就不判断了
+                if(xRight > maxX)
+                    break;
+
+                var indexLeft = dotLeft.Index;
+                var indexRight = (int)Math.Ceiling(xRight/AxisX.Dpl);
+
+                //不断递增右侧Index来获取最宽频率点
+                var maxIndexRight = GetMaxRightIndex(overDotIndexes, indexLeft, indexRight);
+                if (maxIndexRight > indexRight) {
+                    tempResult.Add(new Tuple<int, int>(indexLeft, maxIndexRight));
+                }
+            }
+
+            //根据相同Right值分组, 只要Left值最小的就行了
+            foreach (var group in tempResult.GroupBy(r=>r.Item2)) {
+                var groupMin = group.Min(g => g.Item1);
+                result.Add(group.First(g => g.Item1 == groupMin));
+            }
 
             return result;
+        }
+
+        private int GetMaxRightIndex(List<int> overDotIndexes, int indexLeft, int indexRight)
+        {
+            var overCount = overDotIndexes.Count(i => i >= indexLeft && i <= indexRight);
+
+            //满足条件: 所在频段中 噪声点个数 / 频段点总个数 >= 50%
+            var isSatisfied = (double)overCount / (double)(indexRight - indexLeft + 1) >= 0.5;
+            if (isSatisfied) {
+                indexRight++;
+                return GetMaxRightIndex(overDotIndexes, indexLeft, indexRight);
+            }
+
+            return indexRight;
         }
 
         public List<SidePeakGroup> FindSidePeaksGroups()

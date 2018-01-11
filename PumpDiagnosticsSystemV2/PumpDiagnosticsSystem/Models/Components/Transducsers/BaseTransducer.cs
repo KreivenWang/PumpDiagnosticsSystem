@@ -14,7 +14,7 @@ namespace PumpDiagnosticsSystem.Models
     {
         public string Signal { get; set; }
 
-        public TdPos? Position { get; set; }
+        public string Position { get; set; }
 
         /// <summary>
         /// 数据更新时间

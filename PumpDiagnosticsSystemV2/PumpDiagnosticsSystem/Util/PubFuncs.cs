@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
+using PumpDiagnosticsSystem.Datas;
 using PumpDiagnosticsSystem.Models;
 
 namespace PumpDiagnosticsSystem.Util
@@ -25,12 +26,14 @@ namespace PumpDiagnosticsSystem.Util
             return type;
         }
 
-        public static TdPos? FindTdPosFromSignal(string signal)
+        public static string FindTdPosFromSignal(string signal)
         {
-            var etype = typeof(TdPos);
-            foreach (var pos in Enum.GetNames(etype)) {
+            //var tdpos = SysConstants.SENSORSETTING[$"{sensor.LOCATION}_{sensor.DIRECTION}"];
+            //return tdpos;
+
+            foreach (var pos in SysConstants.AllTdPoses) {
                 if (signal.Contains(pos + "_")) {
-                    return (TdPos) Enum.Parse(etype, pos);
+                    return pos;
                 }
             }
             return null;

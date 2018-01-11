@@ -9,6 +9,8 @@ namespace PumpDiagnosticsSystem.Util
     {
         private static readonly string _directory = Directory.GetCurrentDirectory() + "\\Logs\\";
         private static string _lastWrite = string.Empty;
+        private static int _fileIndex = 1;
+
         /// <summary>
         /// 当在派生类中重写时，返回用来写输出的 <see cref="T:System.Text.Encoding"/>。
         /// </summary>
@@ -34,6 +36,17 @@ namespace PumpDiagnosticsSystem.Util
             if (text == _lastWrite) return;
 
             var filePath = _directory + DateTime.Now.Date.ToString("yyyy-MM-dd") + ".log";
+
+            //日志拆分(未实现):
+            //先找到今天的文件
+            //找到的话
+            //  设置最大编号
+            //  判断有没有100M
+            //  有的话 编号+1 ,新存
+            //  没有的话 继续存
+            //没找到的话
+            //  新建编号1, 然后存
+
             var fs = new FileStream(filePath, FileMode.OpenOrCreate, FileAccess.Write);
             fs.Position = fs.Length;//追加文本到文件末尾
             var sw = new StreamWriter(fs);

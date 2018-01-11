@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace PumpDiagnosticsSystem.Util
         public static void Initialize()
         {
             PSInfo = DataDetailsOp.GetPumpStationInfo();
+            InIOp.Initialize(Directory.GetCurrentDirectory() + "\\app.ini");
         }
     }
 }

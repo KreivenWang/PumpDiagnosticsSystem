@@ -7,6 +7,7 @@ using System.Configuration;
 using System.Data.SqlClient;
 using System.Data;
 using System.Reflection;
+using System.Security.AccessControl;
 using PumpDiagnosticsSystem.Datas;
 using PumpDiagnosticsSystem.Util;
 using RedisDemo.Redis;
@@ -182,6 +183,12 @@ WHERE B.PICKDATE='{timeStr}'";
                     }
                 }
 
+                
+
+                foreach (DataRow dataRow in dt2.Rows) {
+                    
+                }
+
                 var vibDatas = from p in dt2.AsEnumerable()
                     select new {
                         SSGUID = p.Field<Guid>(VF.SSGuid),
@@ -195,8 +202,9 @@ WHERE B.PICKDATE='{timeStr}'";
                         V1Phase = p.Field<double>(VF.V1Phase),
                         V2Phase = p.Field<double>(VF.V2Phase),
 
-                        //有时候V3Phase是"", 所以加个判断 如果没有值, 那就设置为-1
-                        V3Phase = string.IsNullOrEmpty(p.Field<string>(VF.V3Phase)) ? -1D : p.Field<double>(VF.V3Phase),
+                        //有时候V3Phase是"", 读出来就是string类型
+                        //如果V3Phase是有值的,粗出来就是double类型
+                        V3Phase = p.Field<object>(VF.V3Phase) is string ? -1D : p.Field<double>(VF.V3Phase),
                     };
 
                 var filePath = ConfigurationManager.AppSettings["FilePath"];

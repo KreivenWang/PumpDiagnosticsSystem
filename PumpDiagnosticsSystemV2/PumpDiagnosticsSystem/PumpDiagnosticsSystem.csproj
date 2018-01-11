@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;!EXTRA</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;EXTRA</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -163,7 +163,6 @@
     <Compile Include="Models\DbEntities\MainSpec.cs" />
     <Compile Include="Models\PumpStationInfo.cs" />
     <Compile Include="Models\PumpSystem.cs" />
-    <Compile Include="Models\Enums\TransducerPosition.cs" />
     <Compile Include="Business\MyMongo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -172,13 +171,18 @@
     <Compile Include="Util\GlobalRepository.cs" />
     <Compile Include="Util\ConsoleToLogHelper.cs" />
     <Compile Include="Util\GUIDExtension.cs" />
+    <Compile Include="Util\InIOp.cs" />
     <Compile Include="Util\ListExtensions.cs" />
     <Compile Include="Util\Repository.cs" />
     <Compile Include="Dbs\Access\PumpSysLib.cs" />
     <Compile Include="Util\PubFuncs.cs" />
     <Compile Include="Util\RuntimeRepository.cs" />
+    <Compile Include="Util\SharedTool.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="app.ini">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
