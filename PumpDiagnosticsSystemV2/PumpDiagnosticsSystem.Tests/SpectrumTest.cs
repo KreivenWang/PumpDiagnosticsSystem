@@ -38,6 +38,18 @@ namespace PumpDiagnosticsSystem.Tests
 
             Assert.AreEqual(19, findResult[3].Item1);
             Assert.AreEqual(20, findResult[3].Item2);
+
+            data = new List<int> { 1, 5, 6, 7, 9, 10, 11, 14, 16, 17, 19, 20 };
+            findResult = PubFuncs.FindContinues(data, 2);
+            Assert.AreEqual(5, findResult[0].Item1);
+            Assert.AreEqual(20, findResult[0].Item2);
+
+            findResult = PubFuncs.FindContinues(data, 1);
+            Assert.AreEqual(5, findResult[0].Item1);
+            Assert.AreEqual(11, findResult[0].Item2);
+
+            Assert.AreEqual(14, findResult[1].Item1);
+            Assert.AreEqual(20, findResult[1].Item2);
         }
 
         [TestMethod]

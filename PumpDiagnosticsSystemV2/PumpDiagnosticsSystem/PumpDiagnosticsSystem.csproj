@@ -111,6 +111,7 @@
     <Compile Include="Business\MainController.cs" />
     <Compile Include="Business\SpectrumMessenger.cs" />
     <Compile Include="Core\Parser\EasyParser.cs" />
+    <Compile Include="Core\Spectrum\ContinuePair.cs" />
     <Compile Include="Core\Spectrum\SpectrumAnalyser.cs" />
     <Compile Include="Core\Constructor\LogicConstructor.cs" />
     <Compile Include="Core\Constructor\CriterionTemplate.cs" />

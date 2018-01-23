@@ -88,6 +88,43 @@ namespace PumpDiagnosticsSystem.Util
         }
 
         /// <summary>
+        /// 找到数组中连续不断的值的始末对组成的数组
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="tolerance">容差, 向后延伸t个点的都算做连续</param>
+        /// <returns></returns>
+        public static List<Tuple<int, int>> FindContinues(List<int> data, int tolerance)
+        {
+            var result = new List<Tuple<int, int>>();
+            for (int i = 0; i < data.Count; i++) {
+                var tolCount = tolerance;
+                var start = data[i];
+                var forward = start + 1;
+                var j = i + 1;
+                for (; j < data.Count; j++) {
+                    if (data[j] == forward) {
+                        forward++;
+                        tolCount = tolerance;//恢复容差数量
+                    } else {
+                        if (tolCount > 0) {
+                            tolCount--;
+                            forward++;
+                            j--;//避免j继续增加
+                        } else {
+                            break;
+                        }
+                    }
+                }
+                if (j != i + 1) {
+                    if (!result.Exists(t => t.Item2 == data[j - 1])) {
+                        result.Add(new Tuple<int, int>(start, data[j - 1]));
+                    }
+                }
+            }
+            return result;
+        }
+
+        /// <summary>
         /// 列表是否包含指定索引
         /// </summary>
         public static bool ContainsIndex<T>(this IList<T> list, int index)

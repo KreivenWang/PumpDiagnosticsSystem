@@ -620,6 +620,8 @@ namespace PumpDiagnosticsSystem.Core
             };
 
             foreach (var rpsRegion in rpsRegions) {
+                if(rpsRegion.Item1 > rpsRegion.Item2)
+                    Log.Warn($"{Const.FreqRegion_LowToMiddle}倍转速超过50%FMax");
                 FreqRegions.Add(new FreqRegion {
                     BeginFrequence = rpsRegion.Item1,
                     EndFrequence = rpsRegion.Item2,
@@ -696,60 +698,17 @@ namespace PumpDiagnosticsSystem.Core
                     .Select(d => d.Index)
                     .ToList();
 
-            // 噪声最小宽度为: 20RPS x 1/3 x 1/3
+            // 噪声最小宽度为: 20RPS x 1/3 x 1/3?
             var minWidth = NoiseRegions[0].EndFrequence * Const.NoiseMinWidthPercent;
 
-            //现在不获取连续的值, 改为从 最小宽度 去匹配: 频率中 50%(可调)的点都在overDotXs中 (20171225, 根据实验汽蚀模拟的结果来调整算法)
+            //20171225, 根据实验汽蚀模拟的结果来调整算法
+            //获取连续(带容差)的值 组成的列表 
+            var continuesPairs =
+                PubFuncs.FindContinues(overDotIndexes, 16).ToList();
 
-            #region 获取连续值的算法
-            //获取连续的值 组成的列表 
-            //var continuesPairs = PubFuncs.FindContinues(overDotIndexes);
-            //result = continuesPairs.FindAll(p => p.Item2*AxisX.Dpl - p.Item1*AxisX.Dpl >= minWidth);
-            #endregion
-
-            var tempResult = new List<Tuple<int, int>>();
-            var maxX = Dots.Last().X;
-
-            //遍历所有点
-            foreach (var dotLeft in Dots) {
-                var xLeft = dotLeft.X;
-                var xRight = xLeft + minWidth; //起始按频率最小宽度来找
-
-                //超过图谱之外之后 就不判断了
-                if(xRight > maxX)
-                    break;
-
-                var indexLeft = dotLeft.Index;
-                var indexRight = (int)Math.Ceiling(xRight/AxisX.Dpl);
-
-                //不断递增右侧Index来获取最宽频率点
-                var maxIndexRight = GetMaxRightIndex(overDotIndexes, indexLeft, indexRight);
-                if (maxIndexRight > indexRight) {
-                    tempResult.Add(new Tuple<int, int>(indexLeft, maxIndexRight));
-                }
-            }
-
-            //根据相同Right值分组, 只要Left值最小的就行了
-            foreach (var group in tempResult.GroupBy(r=>r.Item2)) {
-                var groupMin = group.Min(g => g.Item1);
-                result.Add(group.First(g => g.Item1 == groupMin));
-            }
+            result = continuesPairs.FindAll(p => p.Item2 * AxisX.Dpl - p.Item1 * AxisX.Dpl >= minWidth);
 
             return result;
-        }
-
-        private int GetMaxRightIndex(List<int> overDotIndexes, int indexLeft, int indexRight)
-        {
-            var overCount = overDotIndexes.Count(i => i >= indexLeft && i <= indexRight);
-
-            //满足条件: 所在频段中 噪声点个数 / 频段点总个数 >= 50%
-            var isSatisfied = (double)overCount / (double)(indexRight - indexLeft + 1) >= 0.5;
-            if (isSatisfied) {
-                indexRight++;
-                return GetMaxRightIndex(overDotIndexes, indexLeft, indexRight);
-            }
-
-            return indexRight;
         }
 
         public List<SidePeakGroup> FindSidePeaksGroups()

@@ -187,11 +187,11 @@ namespace PumpDiagnosticsSystem.App.ViewModel
             if (IsInDesignMode) {
                 // Code runs in Blend --> create design time data.
                 PPSystems.Clear();
-                PPSystems.Add(new PPSysView() { Name = "13#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
-                PPSystems.Add(new PPSysView() { Name = "14#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
-                PPSystems.Add(new PPSysView() { Name = "15#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
-                PPSystems.Add(new PPSysView() { Name = "16#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
-                PPSystems.Add(new PPSysView() { Name = "17#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm") });
+                PPSystems.Add(new PPSysView() { Name = "13#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm"), RPM = 1234.78});
+                PPSystems.Add(new PPSysView() { Name = "14#机泵", IsRunning = true, Time = DateTime.Now.ToString("yy-MM-dd HH:mm"), RPM = 234.58 });
+                PPSystems.Add(new PPSysView() { Name = "15#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm"), RPM = 34.56 });
+                PPSystems.Add(new PPSysView() { Name = "16#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm"), RPM = 4.58 });
+                PPSystems.Add(new PPSysView() { Name = "17#机泵", IsRunning = false, Time = DateTime.Now.ToString("yy-MM-dd HH:mm"), RPM = 0 });
                 IsSysRunning = true;
                 RunModeText = "当前为：历史诊断模式";
             } else {
@@ -217,10 +217,12 @@ namespace PumpDiagnosticsSystem.App.ViewModel
                     if (RuntimeRepo.PumpSysTimeDict.ContainsKey(ppsys.Guid)) {
                         time = RuntimeRepo.PumpSysTimeDict[ppsys.Guid].ToString("yy-MM-dd HH:mm");
                     }
+                    var isRunning = RuntimeRepo.RunningPumpGuids.Contains(ppsys.Guid);
                     PPSystems.Add(new PPSysView {
                         Name = ppsys.Name,
-                        IsRunning = RuntimeRepo.RunningPumpGuids.Contains(ppsys.Guid),
-                        Time = time
+                        IsRunning = isRunning,
+                        Time = time,
+                        RPM = isRunning ? Math.Round(RuntimeRepo.GetRPM(), 2) : 0
                     });
                 }
             });
@@ -250,5 +252,6 @@ namespace PumpDiagnosticsSystem.App.ViewModel
         public bool IsRunning { get; set; }
 
         public string Time { get; set; }
+        public double RPM { get; set; }
     }
 }

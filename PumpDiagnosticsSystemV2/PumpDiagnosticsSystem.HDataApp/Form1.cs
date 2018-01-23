@@ -60,6 +60,8 @@ namespace PumpDiagnosticsSystem.HDataApp
                 MessageBox.Show("共享文件夹权限已获取");
             }
 
+            PSNameLbl.Text = GlobalRepo.PSInfo.PSName;
+
             this.loopCount.Text = _loopCount.ToString();
             button1_Click(null, null);
         }
@@ -73,7 +75,9 @@ namespace PumpDiagnosticsSystem.HDataApp
                 SBpumprun.Clear();
                 SqlUtil.GetDatFromSqlToRedis(d1.AddMinutes(i).ToString("yyyy-MM-dd HH:mm:ss"), _sensorList, _phyDefNoVibra, _pumpRun, SBphynovibra, SBphyvibra, SBpumprun);
                 SetText(SBphynovibra.ToString(), SBphyvibra.ToString(), SBpumprun.ToString(), d1.AddMinutes(i).ToString("yyyy-MM-dd HH:mm:ss"));
-                Thread.Sleep(_inv);
+                var haventVibra = string.IsNullOrEmpty(SBphyvibra.ToString());
+                if(!haventVibra)
+                    Thread.Sleep(_inv);
 //                if (i >= max) {
 //                    i = 0;
 //                }

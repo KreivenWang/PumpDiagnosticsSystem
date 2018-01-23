@@ -59,6 +59,7 @@
   <ItemGroup>
     <Compile Include="EFQuery\EFQueryTest.cs" />
     <Compile Include="EFQuery\EFQueryTestDbContext.cs" />
+    <Compile Include="ExpressionFuncsTest.cs" />
     <Compile Include="ParserTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

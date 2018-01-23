@@ -50,7 +50,7 @@ namespace PumpDiagnosticsSystem.Util
 
         public static double GetRPM()
         {
-            return RtData.SpData.First(d => d.Key.Contains("peed")).Value;
+            return RtData.SpData.FirstOrDefault(d => d.Key.Contains("peed")).Value;
         }
 
         public static void InformUpdate()

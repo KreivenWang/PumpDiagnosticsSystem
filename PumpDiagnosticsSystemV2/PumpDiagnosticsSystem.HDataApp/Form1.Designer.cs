@@ -41,13 +41,14 @@
             this.loopCount = new System.Windows.Forms.Label();
             this.loopCur = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
+            this.PSNameLbl = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // dateTimePicker1
             // 
             this.dateTimePicker1.CustomFormat = "yyyy-MM-dd HH:mm";
             this.dateTimePicker1.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateTimePicker1.Location = new System.Drawing.Point(41, 22);
+            this.dateTimePicker1.Location = new System.Drawing.Point(39, 56);
             this.dateTimePicker1.Name = "dateTimePicker1";
             this.dateTimePicker1.Size = new System.Drawing.Size(200, 21);
             this.dateTimePicker1.TabIndex = 1;
@@ -56,14 +57,14 @@
             // 
             this.dateTimePicker2.CustomFormat = "yyyy-MM-dd HH:mm";
             this.dateTimePicker2.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dateTimePicker2.Location = new System.Drawing.Point(41, 49);
+            this.dateTimePicker2.Location = new System.Drawing.Point(39, 83);
             this.dateTimePicker2.Name = "dateTimePicker2";
             this.dateTimePicker2.Size = new System.Drawing.Size(200, 21);
             this.dateTimePicker2.TabIndex = 2;
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(247, 36);
+            this.button1.Location = new System.Drawing.Point(245, 70);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 23);
             this.button1.TabIndex = 3;
@@ -143,7 +144,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(109, 93);
+            this.label5.Location = new System.Drawing.Point(107, 127);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(83, 12);
             this.label5.TabIndex = 13;
@@ -154,7 +155,7 @@
             this.loopCount.AutoSize = true;
             this.loopCount.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.loopCount.ForeColor = System.Drawing.Color.Red;
-            this.loopCount.Location = new System.Drawing.Point(88, 89);
+            this.loopCount.Location = new System.Drawing.Point(86, 123);
             this.loopCount.Name = "loopCount";
             this.loopCount.Size = new System.Drawing.Size(18, 19);
             this.loopCount.TabIndex = 14;
@@ -165,7 +166,7 @@
             this.loopCur.AutoSize = true;
             this.loopCur.Font = new System.Drawing.Font("微软雅黑", 10.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(134)));
             this.loopCur.ForeColor = System.Drawing.Color.Red;
-            this.loopCur.Location = new System.Drawing.Point(198, 89);
+            this.loopCur.Location = new System.Drawing.Point(196, 123);
             this.loopCur.Name = "loopCur";
             this.loopCur.Size = new System.Drawing.Size(18, 19);
             this.loopCur.TabIndex = 15;
@@ -174,17 +175,27 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(45, 93);
+            this.label6.Location = new System.Drawing.Point(43, 127);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(41, 12);
             this.label6.TabIndex = 16;
             this.label6.Text = "共循环";
+            // 
+            // PSNameLbl
+            // 
+            this.PSNameLbl.AutoSize = true;
+            this.PSNameLbl.Location = new System.Drawing.Point(39, 20);
+            this.PSNameLbl.Name = "PSNameLbl";
+            this.PSNameLbl.Size = new System.Drawing.Size(53, 12);
+            this.PSNameLbl.TabIndex = 17;
+            this.PSNameLbl.Text = "水厂名称";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1054, 490);
+            this.Controls.Add(this.PSNameLbl);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.loopCur);
             this.Controls.Add(this.loopCount);
@@ -221,6 +232,7 @@
         private System.Windows.Forms.Label loopCount;
         private System.Windows.Forms.Label loopCur;
         private System.Windows.Forms.Label label6;
+        private System.Windows.Forms.Label PSNameLbl;
     }
 }
 

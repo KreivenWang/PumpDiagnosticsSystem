@@ -275,7 +275,7 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
         /// <param name="sidePeakGroup">主峰边频带</param>
         /// <param name="nxFeature">谐波</param>
         /// <returns></returns>
-        private double FeatureInNoise(double graphNumber, double freqRegions, double footerGrades, double autoFooterGrade,
+        public double FeatureInNoise(double graphNumber, double freqRegions, double footerGrades, double autoFooterGrade,
             double featureCount, double sidePeakGroup, double nxFeature)
         {
             var result = 0D;
@@ -390,7 +390,8 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
 
                         var noiseDots = spec.Dots.FindAll(d => d.Index >= noiseBegin && d.Index <= noiseEnd);
 
-                        result = judgeResult(noiseDots);
+                        result += judgeResult(noiseDots); //有一个真则真
+                        if (result > 1) result = 1;
                     }
                 }
             }
