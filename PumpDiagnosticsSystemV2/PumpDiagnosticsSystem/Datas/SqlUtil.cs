@@ -261,6 +261,8 @@ WHERE B.PICKDATE='{timeStr}'";
                             aFile.Close();
 
                         }
+                        if (string.IsNullOrEmpty(txtcontent))
+                            throw new Exception($"文件内容为空 {url}");
                         var values = txtcontent.Split('[')[1].Split(']')[0].Trim();
                         //   values = "0," + values;
                         redisClient.Set("{" + item.SSGUID.ToString().ToUpper() + "}_WaveTime", String.Format("{1}|{{Period: 0.20000, AmpliateRef: 1.12098, Amplitude: [{0}]}}", values, item.PickDate.ToString("yyyy-MM-dd HH:mm:ss")));
@@ -284,6 +286,8 @@ WHERE B.PICKDATE='{timeStr}'";
                             aFile.Close();
 
                         }
+                        if (string.IsNullOrEmpty(txtcontent))
+                            throw new Exception($"文件内容为空 {url}");
                         var values = txtcontent.Split('[')[1].Split(']')[0].Trim();
                         values = "0," + values;
                         redisClient.Set("{" + item.SSGUID.ToString().ToUpper() + "}_Spec", String.Format("{1}|{{FMax: {2},Amplitude: [{0}]}}", values, item.PickDate.ToString("yyyy-MM-dd HH:mm:ss"), txtcontent.Split('[')[0].Split(',')[0].Split(':')[1]));

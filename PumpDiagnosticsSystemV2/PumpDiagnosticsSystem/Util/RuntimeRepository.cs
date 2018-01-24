@@ -48,9 +48,9 @@ namespace PumpDiagnosticsSystem.Util
 
         public static SpectrumAnalyser SpecAnalyser { get; } = new SpectrumAnalyser();
 
-        public static double GetRPM()
+        public static double GetRPM(Guid ppGuid)
         {
-            return RtData.SpData.FirstOrDefault(d => d.Key.Contains("peed")).Value;
+            return RtData.SpData.FirstOrDefault(d => d.Key.Contains("Speed") && d.Key.Contains(ppGuid.ToFormatedString())).Value;
         }
 
         public static void InformUpdate()

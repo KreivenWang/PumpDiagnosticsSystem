@@ -107,7 +107,7 @@ namespace PumpDiagnosticsSystem.Datas
                             graph.BandWidth = double.Parse(bandWidthInfo[1].Replace(" ", string.Empty));
                         }
 
-                        var rpm = RuntimeRepo.GetRPM();
+                        var rpm = RuntimeRepo.GetRPM(graph.PPGuid);
                         var spec = new Spectrum(
                             ppGuid: graph.PPGuid,
                             ssGuid: graph.SSGuid,

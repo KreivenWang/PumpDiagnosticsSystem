@@ -22,6 +22,7 @@ namespace PumpDiagnosticsSystem.HDataApp
         private readonly StringBuilder SBphynovibra = new StringBuilder();
         private readonly StringBuilder SBphyvibra = new StringBuilder();
         private readonly StringBuilder SBpumprun = new StringBuilder();
+        private readonly StringBuilder SBexception = new StringBuilder();
         private static readonly int _inv = Convert.ToInt32(ConfigurationManager.AppSettings["Inv"]) * 1000;
         private static readonly int _loopCount = Convert.ToInt32(ConfigurationManager.AppSettings["Loop"]);
         private int _loopCur = 0;
@@ -57,7 +58,7 @@ namespace PumpDiagnosticsSystem.HDataApp
 
             using (new SharedTool("Administrator", "123.net", "192.168.0.9")) {
                 string selectPath = @"\\192.168.0.9\XMData";
-                MessageBox.Show("共享文件夹权限已获取");
+                shareStatLbl.Text = "已获取共享文件夹权限";
             }
 
             PSNameLbl.Text = GlobalRepo.PSInfo.PSName;
@@ -73,8 +74,13 @@ namespace PumpDiagnosticsSystem.HDataApp
                 SBphynovibra.Clear();
                 SBphyvibra.Clear();
                 SBpumprun.Clear();
-                SqlUtil.GetDatFromSqlToRedis(d1.AddMinutes(i).ToString("yyyy-MM-dd HH:mm:ss"), _sensorList, _phyDefNoVibra, _pumpRun, SBphynovibra, SBphyvibra, SBpumprun);
-                SetText(SBphynovibra.ToString(), SBphyvibra.ToString(), SBpumprun.ToString(), d1.AddMinutes(i).ToString("yyyy-MM-dd HH:mm:ss"));
+                var time = d1.AddMinutes(i).ToString("yyyy-MM-dd HH:mm:ss");
+                try {
+                    SqlUtil.GetDatFromSqlToRedis(time, _sensorList, _phyDefNoVibra, _pumpRun, SBphynovibra, SBphyvibra, SBpumprun);
+                } catch (Exception ex) {
+                    SBexception.AppendLine(time + " " + ex.Message);
+                }
+                SetText(SBphynovibra.ToString(), SBphyvibra.ToString(), SBpumprun.ToString(), time, SBexception.ToString());
                 var haventVibra = string.IsNullOrEmpty(SBphyvibra.ToString());
                 if(!haventVibra)
                     Thread.Sleep(_inv);
@@ -84,19 +90,20 @@ namespace PumpDiagnosticsSystem.HDataApp
             }
         }
 
-        delegate void SetTextCallBack(string Stringphynovibra, string Stringphyvibra, string Stringpumprun, string text2);
-        private void SetText(string Stringphynovibra, string Stringphyvibra, string Stringpumprun, string text2)
+        delegate void SetTextCallBack(string Stringphynovibra, string Stringphyvibra, string Stringpumprun, string text2, string exception);
+        private void SetText(string Stringphynovibra, string Stringphyvibra, string Stringpumprun, string text2, string exception)
         {
             if (this.textBoxPhyVibra.InvokeRequired) {
                 SetTextCallBack stcb = new SetTextCallBack(SetText);
                 if (this.IsHandleCreated && this.IsDisposed == false) {
-                    this.Invoke(stcb, new object[] { Stringphynovibra, Stringphyvibra, Stringpumprun, text2 });
+                    this.Invoke(stcb, new object[] { Stringphynovibra, Stringphyvibra, Stringpumprun, text2,exception });
                 }
             } else {
                 this.textBoxPhyNoVibra.Text = Stringphynovibra;
                 this.textBoxPhyVibra.Text = Stringphyvibra;
                 this.textBoxPumpRun.Text = Stringpumprun;
                 this.label3.Text = text2;
+                this.exTextBox.Text = exception;
             }
         }
 

@@ -42,6 +42,9 @@
             this.loopCur = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
             this.PSNameLbl = new System.Windows.Forms.Label();
+            this.exTextBox = new System.Windows.Forms.TextBox();
+            this.label7 = new System.Windows.Forms.Label();
+            this.shareStatLbl = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // dateTimePicker1
@@ -99,7 +102,7 @@
             this.textBoxPhyNoVibra.Name = "textBoxPhyNoVibra";
             this.textBoxPhyNoVibra.ReadOnly = true;
             this.textBoxPhyNoVibra.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxPhyNoVibra.Size = new System.Drawing.Size(330, 273);
+            this.textBoxPhyNoVibra.Size = new System.Drawing.Size(405, 273);
             this.textBoxPhyNoVibra.TabIndex = 9;
             this.textBoxPhyNoVibra.WordWrap = false;
             // 
@@ -137,7 +140,7 @@
             this.textBoxPumpRun.Name = "textBoxPumpRun";
             this.textBoxPumpRun.ReadOnly = true;
             this.textBoxPumpRun.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBoxPumpRun.Size = new System.Drawing.Size(570, 98);
+            this.textBoxPumpRun.Size = new System.Drawing.Size(570, 106);
             this.textBoxPumpRun.TabIndex = 12;
             this.textBoxPumpRun.WordWrap = false;
             // 
@@ -190,11 +193,43 @@
             this.PSNameLbl.TabIndex = 17;
             this.PSNameLbl.Text = "水厂名称";
             // 
+            // exTextBox
+            // 
+            this.exTextBox.Location = new System.Drawing.Point(45, 468);
+            this.exTextBox.Multiline = true;
+            this.exTextBox.Name = "exTextBox";
+            this.exTextBox.ReadOnly = true;
+            this.exTextBox.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
+            this.exTextBox.Size = new System.Drawing.Size(977, 83);
+            this.exTextBox.TabIndex = 18;
+            this.exTextBox.WordWrap = false;
+            // 
+            // label7
+            // 
+            this.label7.AutoSize = true;
+            this.label7.Location = new System.Drawing.Point(4, 471);
+            this.label7.Name = "label7";
+            this.label7.Size = new System.Drawing.Size(35, 12);
+            this.label7.TabIndex = 19;
+            this.label7.Text = "异常:";
+            // 
+            // shareStatLbl
+            // 
+            this.shareStatLbl.AutoSize = true;
+            this.shareStatLbl.Location = new System.Drawing.Point(107, 20);
+            this.shareStatLbl.Name = "shareStatLbl";
+            this.shareStatLbl.Size = new System.Drawing.Size(125, 12);
+            this.shareStatLbl.TabIndex = 20;
+            this.shareStatLbl.Text = "未获得共享文件夹权限";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1054, 490);
+            this.ClientSize = new System.Drawing.Size(1054, 563);
+            this.Controls.Add(this.shareStatLbl);
+            this.Controls.Add(this.label7);
+            this.Controls.Add(this.exTextBox);
             this.Controls.Add(this.PSNameLbl);
             this.Controls.Add(this.label6);
             this.Controls.Add(this.loopCur);
@@ -233,6 +268,9 @@
         private System.Windows.Forms.Label loopCur;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.Label PSNameLbl;
+        private System.Windows.Forms.TextBox exTextBox;
+        private System.Windows.Forms.Label label7;
+        private System.Windows.Forms.Label shareStatLbl;
     }
 }
 

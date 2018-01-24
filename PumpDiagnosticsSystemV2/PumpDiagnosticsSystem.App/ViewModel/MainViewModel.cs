@@ -222,7 +222,7 @@ namespace PumpDiagnosticsSystem.App.ViewModel
                         Name = ppsys.Name,
                         IsRunning = isRunning,
                         Time = time,
-                        RPM = isRunning ? Math.Round(RuntimeRepo.GetRPM(), 2) : 0
+                        RPM = isRunning ? Math.Round(RuntimeRepo.GetRPM(ppsys.Guid), 2) : 0
                     });
                 }
             });
