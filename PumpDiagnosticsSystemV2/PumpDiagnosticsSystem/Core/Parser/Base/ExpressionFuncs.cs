@@ -172,10 +172,11 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
         /// <summary>
         /// 判断共振
         /// </summary>
-        /// <param name="ratio"></param>
+        /// <param name="verRatio">纵向超标</param>
         /// <param name="driver">从左到右:水泵非驱动端到电机非驱动端为0,1,2,3</param>
+        /// <param name="horRatio">横向比较的倍数</param>
         /// <returns></returns>
-        private double CheckSyntony(double ratio, double driver)
+        private double CheckSyntony(double verRatio, double driver, double horRatio)
         {
             var result = 0D;
 
@@ -190,16 +191,14 @@ namespace PumpDiagnosticsSystem.Core.Parser.Base
 
             var maxVibraValue = specs.Max(s => s.MVDot.Y);
             var maxVibraSpec = specs.First(s => s.MVDot.Y == maxVibraValue);
-            var maxVibraFeatures = maxVibraSpec.MVDot.Features;
 
-            //主频点中存在特征值超标
-            if (maxVibraFeatures.Exists(ft => maxVibraSpec.High(ft))) {
-
+            //最大的那个值跟总振值相比超标
+            if (maxVibraValue > verRatio) {
                 //且 大于ratio倍的 至少一个 其他2个方向 的振值
                 foreach (var spec in specs) {
                     LogToRtData(spec.Pos.DirectionPos.ToString(), spec.MVDot.Y);
                     if (maxVibraSpec != spec) {
-                        if (maxVibraValue >= spec.MVDot.Y*ratio) {
+                        if (maxVibraValue >= spec.MVDot.Y * horRatio) {
                             result = 1D;
                         }
                     }
