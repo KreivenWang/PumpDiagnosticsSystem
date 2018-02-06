@@ -293,6 +293,7 @@ namespace PumpDiagnosticsSystem.Business
                                 var latestTime = existRpts.Max(rr => rr.LatestTime);
                                 var latestRpt = existRpts.First(r => r.LatestTime == latestTime);
                                 latestRpt.LatestTime = newRpt.FirstTime;
+                                latestRpt.RecordTime=DateTime.Now;
                                 latestRpt.HappenCount++;
                                 calcCredibilityAction(context, latestRpt);
                             }
