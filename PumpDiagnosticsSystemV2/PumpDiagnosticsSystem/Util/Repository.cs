@@ -154,7 +154,9 @@ namespace PumpDiagnosticsSystem.Util
                 {CompType.Td_S, "@Speed"},
                 {CompType.Td_V, "@OverAll"},
                 {CompType.PA, "@I"},
-                {CompType.PV, "@U"}
+                {CompType.PV, "@U"},
+                {CompType.SIGNAL, "@VALUE"}
+
             };
 
             /// <summary>
@@ -171,7 +173,8 @@ namespace PumpDiagnosticsSystem.Util
                 {"$Ia_", CompType.PA},
                 {"$Ib_", CompType.PA},
                 {"$Ic_", CompType.PA},
-                {"$Frequence_", CompType.PF}
+                {"$Frequence_", CompType.PF},
+                {"$xjdl_", CompType.SIGNAL},
 
             };
 
@@ -188,7 +191,8 @@ namespace PumpDiagnosticsSystem.Util
                 {"SpeedTransducer", CompType.Td_S},
                 {"CurrentTransducer", CompType.PA},
                 {"VoltageTransducer", CompType.PV},
-                {"FrequenceMeter", CompType.PF}
+                {"FrequenceMeter", CompType.PF},
+                {"SignalTransducer", CompType.SIGNAL},
             };
 
             /// <summary>

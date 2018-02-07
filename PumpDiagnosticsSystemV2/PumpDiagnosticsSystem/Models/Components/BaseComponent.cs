@@ -118,7 +118,12 @@ namespace PumpDiagnosticsSystem.Models
         /// <summary>
         /// 电机功率/频率传感器
         /// </summary>
-        PF
+        PF,
+
+        /// <summary>
+        /// 信号模拟传感器
+        /// </summary>
+        SIGNAL,
 
         #endregion
     }
