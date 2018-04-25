@@ -200,7 +200,7 @@ AND [PUMPTYPE].[PPTGUID] = [PUMP].[PPTGUID]";
                         $"建议{item.advice}</br></br>");
 
                 var sql =
-                    $@"INSERT INTO [PumpVibraDB-UI].[dbo].[DIAGREPORT] (DRTITLE, DRDATE,PSGUID,PPGUID,CREATETIME,DRTYPE,DRCONTENT) 
+                    $@"INSERT INTO [dbo].[DIAGREPORT] (DRTITLE, DRDATE,PSGUID,PPGUID,CREATETIME,DRTYPE,DRCONTENT) 
   VALUES('{tt}',GETDATE(),'{GlobalRepo.PSInfo.PSGuid}','{ppsys.Guid.ToFormatedString()}',GETDATE(),3,'{contentSb.ToString()}')";
                 _sqlOp.ExecuteNonQuery(sql);
             });

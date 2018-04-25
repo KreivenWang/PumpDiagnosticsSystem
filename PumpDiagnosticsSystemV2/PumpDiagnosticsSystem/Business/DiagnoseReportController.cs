@@ -103,10 +103,17 @@ namespace PumpDiagnosticsSystem.Business
                             var graphNums = passedCts.SelectMany(ct => ct.GraphNumbers).Distinct().ToArray();
                             foreach (var graphNum in graphNums) {
                                 var graph = RuntimeRepo.RtData.Graphs[graphNum - 1]; //graphNum从1开始, graphs数组索引从0开始
-                                var ga = GraphArchive.FromGraph(graph);
-                                var gaId = context.AddGraph(ga);
-                                if (!gMap.ContainsKey(graphNum))
-                                    gMap.Add(graphNum, gaId);
+                                if (graph.Data.Any())
+                                {
+                                    var ga = GraphArchive.FromGraph(graph);
+                                    var gaId = context.AddGraph(ga);
+                                    if (!gMap.ContainsKey(graphNum))
+                                        gMap.Add(graphNum, gaId);
+                                }
+                                else
+                                {
+                                    Log.Warn($"振动传感器频谱图获取不到数据 {graph.Pos}");
+                                }
                             }
                             newRpt.GraphMap = string.Join(Repo.Separator, gMap.Select(m => $"{m.Key}:{m.Value}"));
                             _recordValidGrade(newRpt);
@@ -218,6 +225,72 @@ namespace PumpDiagnosticsSystem.Business
 
                     foreach (var icItem in comp.InferComboItems.Where(ic => ic.IsHappening)) {
 
+                        //不是分档的判据
+                        if (icItem.ExpressionCts.All(ct => !(ct is GradedCriterion)))
+                        {
+                            var cts = icItem.ExpressionCts.Where(ct => ct.IsHappening).ToList();
+                            var newRpt = new InferComboReport();
+
+                            //设置报告时间
+                            var happenTime = cts.Max(ct => ct.Time);
+                            newRpt.LibId = icItem.Id;
+                            newRpt.FirstTime = happenTime;
+                            newRpt.LatestTime = happenTime;
+
+                            //设置报告组件
+                            newRpt.CompCode = comp.Code;
+
+                            //设置报告故障内容和建议
+                            //                        var faultItem = Repo.FaultItems.First(fi => fi.IsSameFaultItem(icItem));
+                            newRpt.DisplayText = icItem.FaultResult;
+                            newRpt.EventMode = icItem.EventMode;
+                            newRpt.Expression = icItem.Expression;
+                            newRpt.RtDatas = string.Join(Repo.Separator,
+                                icItem.ExpressionCts.Select(ct => $"{ct.LibId}:{(ct.IsHappening ? 1 : 0)}"));
+                            //                        newRpt.Advise = faultItem.Advise;
+
+                            newRpt.HappenCount = 1;
+                            calcCredibilityAction(context, newRpt);
+
+                            
+
+                            newRpt.RRId = RuntimeRepo.RRId;
+
+                            newRpt.Advice = icItem.Advice;
+
+                            //                            var icReports = context.InferComboReports.ToList();
+
+                            //判断是否存在报告，不存在则添加，存在则更新
+                            var existRpts =
+                                context.InferComboReports.Where(rptRecord => rptRecord.LibId == newRpt.LibId &&
+                                                                             rptRecord.CompCode == newRpt.CompCode &&
+                                                                             rptRecord.EventMode == newRpt.EventMode &&
+                                                                             rptRecord.Expression == newRpt.Expression &&
+                                                                             rptRecord.RRId == newRpt.RRId).ToArray();
+                            if (!existRpts.Any())
+                            {
+                                // SHOULD Has same GRADE && has prevIds && same sensor position
+                                // BUT now we only have prevIds here.
+                                var intersects = context.InferComboReports.Select(r => r.LibId).Intersect(icItem.PrevIds).ToList();
+                                if (intersects.Any())
+                                {
+                                    newRpt.DisplayText += "(小概率)";
+                                    newRpt.IsLowProbability = true;
+                                }
+                                reportsToSave.Add(newRpt);
+                            }
+                            else
+                            {
+                                var latestTime = existRpts.Max(rr => rr.LatestTime);
+                                var latestRpt = existRpts.First(r => r.LatestTime == latestTime);
+                                latestRpt.LatestTime = newRpt.FirstTime;
+                                latestRpt.RecordTime = DateTime.Now;
+                                latestRpt.HappenCount++;
+                                calcCredibilityAction(context, latestRpt);
+                            }
+                        }
+                        else
+                        {
                         GradedCriterion.ForEachValidGradeRange(gradeRange =>
                         {
 
@@ -298,6 +371,8 @@ namespace PumpDiagnosticsSystem.Business
                                 calcCredibilityAction(context, latestRpt);
                             }
                         });
+                        }
+
                     }
                 }
 

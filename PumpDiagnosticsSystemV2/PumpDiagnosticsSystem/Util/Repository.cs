@@ -155,7 +155,7 @@ namespace PumpDiagnosticsSystem.Util
                 {CompType.Td_V, "@OverAll"},
                 {CompType.PA, "@I"},
                 {CompType.PV, "@U"},
-                {CompType.SIGNAL, "@VALUE"}
+                {CompType.SIGNAL, "@Value"}
 
             };
 
